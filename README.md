@@ -1,4 +1,4 @@
-# App de fenología (nombre provisional)
+# FramBitácora
 
 Cuaderno de campo digital para el **seguimiento fenológico de cultivos**: registro semanal
 del estado fenológico con fotos, notas y mediciones, funcionando **sin conexión** y

@@ -1,5 +1,19 @@
 # 05 · Preguntas abiertas
 
+## Respuestas (30-10-2026)
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Nombre | **FramBitácora** |
+| 2 | Plataformas | **Solo Android** por ahora |
+| 3 | Usuarios | **Solo el dueño y su equipo** (una organización) |
+| 5 | Volumen | **≈ 500 fotos por temporada** → cabe en planes gratuitos si las fotos se comprimen (≈ 300 KB c/u ≈ 150 MB) |
+| 11 | Fotos etiquetadas | **Sí hay** fotos propias con su estadio para un primer entrenamiento |
+| 12 | Sincronización | Pendiente: explicar PowerSync; si no convence, motor propio |
+| 13-14 | Repositorio y licencia | **Queda público por ahora**; el código se entregará después al equipo de TI de la empresa. Licencia por definir (ver 04-licencia.md) |
+
+## Preguntas originales
+
 Respuestas necesarias antes de empezar la etapa 0/1. Entre paréntesis, lo que haré si no
 hay respuesta.
 
