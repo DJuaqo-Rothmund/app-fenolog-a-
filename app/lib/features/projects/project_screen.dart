@@ -8,6 +8,7 @@ import '../../domain/project_kind.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../export/export_screen.dart';
 import '../measurements/measurement_defs_screen.dart';
 import '../measurements/variety_params_screen.dart';
 import '../sampling/observation_screen.dart';
@@ -74,7 +75,7 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
       ),
     );
     final text = name.text.trim();
-    name.dispose();
+    disposeAfterClose([name]);
     return ok == true && text.isNotEmpty ? (name: text, week1: week1) : null;
   }
 
@@ -181,6 +182,8 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
                 switch (v) {
                   case 'measurements':
                     _open(MeasurementDefsScreen(projectId: p.id));
+                  case 'export' when s != null:
+                    _open(ExportScreen(project: p, season: s));
                   case 'params' when s != null:
                     _open(VarietyParamsScreen(project: p, season: s));
                   case 'pick-season' when s != null:
@@ -194,6 +197,8 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
                 }
               },
               itemBuilder: (_) => [
+                const PopupMenuItem(value: 'export', child: Text('Exportar, Drive e importar')),
+                const PopupMenuDivider(),
                 const PopupMenuItem(value: 'measurements', child: Text('Mediciones')),
                 const PopupMenuItem(value: 'params', child: Text('Parámetros por variedad')),
                 const PopupMenuDivider(),

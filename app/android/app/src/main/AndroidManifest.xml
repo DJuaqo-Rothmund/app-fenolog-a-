@@ -2,6 +2,8 @@
     <!-- Ubicación opcional de cada registro (GPS, funciona sin internet). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Subir a Google Drive (opcional; el resto de la app funciona sin internet). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="FramBitácora"
         android:name="${applicationName}"

@@ -109,4 +109,66 @@ void main() {
 
     await finish(tester);
   });
+
+  testWidgets('crear una medición y registrarla en la semana', (tester) async {
+    await tester.runAsync(() async {
+      final crop = await db.select(db.crops).getSingle();
+      final scale = await db.select(db.phenoScales).getSingle();
+      await db
+          .into(db.projects)
+          .insert(
+            ProjectsCompanion.insert(
+              id: const Value('p1'),
+              cropId: crop.id,
+              scaleId: scale.id,
+              kind: ProjectKind.varietyTrial.name,
+              name: 'Ensayo',
+            ),
+          );
+      await db
+          .into(db.seasons)
+          .insert(SeasonsCompanion.insert(projectId: 'p1', name: '2026-27', week1Start: DateTime.utc(2026, 9, 7)));
+      await db.into(db.units).insert(UnitsCompanion.insert(projectId: 'p1', label: 'Heritage'));
+    });
+
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.text('Ensayo'));
+    await settle(tester);
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await settle(tester);
+    await tester.tap(find.text('Mediciones'));
+    await settle(tester);
+    expect(find.textContaining('Aún no hay mediciones'), findsOneWidget);
+
+    await tester.tap(find.text('Medición'));
+    await settle(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nombre'), 'Largo de brote');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Unidad (cm, n.º, kg/ha…)'), 'cm');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Máximo'), '300');
+    await tester.tap(find.text('Guardar'));
+    await settle(tester);
+    expect(find.text('Largo de brote (cm)'), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await settle(tester);
+    await tester.tap(find.text('Heritage'));
+    await settle(tester);
+    expect(find.text('Mediciones'), findsOneWidget);
+
+    final field = find.widgetWithText(TextField, 'Largo de brote (cm)');
+    await tester.enterText(field, '400');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settle(tester);
+    expect(find.text('Máximo 300'), findsOneWidget);
+
+    await tester.enterText(field, '12,5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settle(tester);
+    final values = await tester.runAsync(() => db.select(db.measurementValues).get());
+    expect(values!.single.valueNum, 12.5);
+
+    await finish(tester);
+  });
 }

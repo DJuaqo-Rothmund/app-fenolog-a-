@@ -109,3 +109,13 @@ Future<bool> confirm(
   );
   return ok ?? false;
 }
+
+/// Libera controladores de un diálogo cuando ya terminó su animación de
+/// cierre (liberarlos antes hace fallar los campos que aún se dibujan).
+void disposeAfterClose(List<ChangeNotifier> controllers) {
+  Future<void>.delayed(const Duration(seconds: 1), () {
+    for (final c in controllers) {
+      c.dispose();
+    }
+  });
+}

@@ -129,8 +129,6 @@ Future<String?> showVarietyDialog(
       id = variety.id;
     }
   }
-  name.dispose();
-  code.dispose();
-  notes.dispose();
+  disposeAfterClose([name, code, notes]);
   return id;
 }

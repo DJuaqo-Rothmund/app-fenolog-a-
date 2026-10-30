@@ -5,6 +5,7 @@ import '../../data/database.dart';
 import '../../domain/project_kind.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../export/backup_screen.dart';
 import '../scale/scale_screen.dart';
 import '../varieties/varieties_screen.dart';
 import 'project_form_screen.dart';
@@ -45,11 +46,13 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           PopupMenuButton<String>(
             onSelected: (v) => switch (v) {
               'varieties' => _openCatalog((c) => VarietiesScreen(cropId: c.id, cropName: c.name)),
+              'backup' => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const BackupScreen())),
               _ => _openCatalog((c) => ScaleScreen(cropId: c.id, cropName: c.name)),
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'varieties', child: Text('Variedades')),
               PopupMenuItem(value: 'scale', child: Text('Escala fenológica')),
+              PopupMenuItem(value: 'backup', child: Text('Respaldo y Google Drive')),
             ],
           ),
         ],
