@@ -1,0 +1,62 @@
+name: Desarrollo (ramas claude)
+
+# Para ramas de trabajo hechas sin Flutter instalado: regenera el código de Drift,
+# aplica el formato, sube esos cambios a la misma rama y corre análisis y pruebas.
+# Los errores quedan como anotaciones del trabajo, legibles desde la API.
+on:
+  push:
+    branches: ["claude/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: |
+          flutter pub get > /tmp/pub.txt 2>&1 || { cat /tmp/pub.txt; ../.github/scripts/annotate.sh /tmp/pub.txt "pub get"; exit 1; }
+
+      - name: Código generado
+        run: |
+          dart run build_runner build --delete-conflicting-outputs > /tmp/gen.txt 2>&1 || { cat /tmp/gen.txt; grep -v -E '^\[INFO\]' /tmp/gen.txt | tail -200 > /tmp/gen_err.txt; ../.github/scripts/annotate.sh /tmp/gen_err.txt "build_runner"; exit 1; }
+
+      - name: Formato
+        run: dart format $(find lib test -name '*.dart' ! -name '*.g.dart')
+
+      - name: Subir código generado y formato
+        working-directory: .
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A app
+            git commit -m "Código generado y formato (automático)"
+            git push
+          fi
+
+      - name: Análisis
+        run: |
+          flutter analyze > /tmp/analyze.txt 2>&1 || { cat /tmp/analyze.txt; grep -E '^\s*(error|warning|info) ' /tmp/analyze.txt > /tmp/an.txt || tail -80 /tmp/analyze.txt > /tmp/an.txt; ../.github/scripts/annotate.sh /tmp/an.txt "analyze"; exit 1; }
+
+      - name: Pruebas
+        if: always()
+        run: |
+          flutter test --reporter expanded > /tmp/test.txt 2>&1 || { cat /tmp/test.txt; grep -n -E '\[E\]|Expected:|Actual:|Error|error:|Exception|\.dart [0-9]+:[0-9]+' /tmp/test.txt | head -300 > /tmp/te.txt; ../.github/scripts/annotate.sh /tmp/te.txt "test"; exit 1; }
