@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../domain/completeness.dart';
 import '../domain/photo_naming.dart';
 import 'database.dart';
+import 'ids.dart';
 import 'photo_store.dart';
 
 /// Una fila de la semana: la unidad y, si existe, su registro.
@@ -73,7 +74,12 @@ ORDER BY u.sort_order, u.label
     return db
         .into(db.weekStatuses)
         .insert(
-          WeekStatusesCompanion.insert(seasonId: seasonId, weekNumber: week, notSampled: Value(notSampled)),
+          WeekStatusesCompanion.insert(
+            id: Value(Ids.weekStatus(seasonId, week)),
+            seasonId: seasonId,
+            weekNumber: week,
+            notSampled: Value(notSampled),
+          ),
           onConflict: DoUpdate(
             (_) => WeekStatusesCompanion(notSampled: Value(notSampled), updatedAt: Value(DateTime.now())),
             target: [db.weekStatuses.seasonId, db.weekStatuses.weekNumber],
@@ -96,7 +102,14 @@ ORDER BY u.sort_order, u.label
       if (existing != null) return existing.id;
       final row = await db
           .into(db.observations)
-          .insertReturning(ObservationsCompanion.insert(seasonId: seasonId, unitId: unitId, weekNumber: week));
+          .insertReturning(
+            ObservationsCompanion.insert(
+              id: Value(Ids.observation(seasonId, unitId, week)),
+              seasonId: seasonId,
+              unitId: unitId,
+              weekNumber: week,
+            ),
+          );
       return row.id;
     });
   }

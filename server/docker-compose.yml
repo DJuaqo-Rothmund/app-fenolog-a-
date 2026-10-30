@@ -1,0 +1,43 @@
+# Uso: copiar .env.ejemplo a .env, completar las claves y ejecutar
+#   docker compose up -d
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: frambitacora
+      POSTGRES_USER: frambitacora
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  server:
+    build: .
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      DB_HOST: db
+      DB_NAME: frambitacora
+      DB_USER: frambitacora
+      DB_PASSWORD: ${DB_PASSWORD}
+      OWNER_EMAIL: ${OWNER_EMAIL:?Falta OWNER_EMAIL en .env}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:?Falta OWNER_PASSWORD en .env}
+    volumes:
+      - fotos:/data/fotos
+
+  # HTTPS con certificado gratuito automático (Let's Encrypt).
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [server]
+    command: caddy reverse-proxy --from ${DOMAIN:?Falta DOMAIN en .env} --to server:8080
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy:/data
+
+volumes:
+  caddy:
+  db:
+  fotos:

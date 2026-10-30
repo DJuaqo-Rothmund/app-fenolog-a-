@@ -13,7 +13,8 @@ en un archivo JSON, sin cambiar código).
 | 1 · MVP sin conexión (cultivos, variedades, proyectos, unidades, semanas, registro con fotos) | ✅ para probar en terreno |
 | 2 · Mediciones, Excel/CSV, respaldo y Google Drive | ✅ |
 | 3 · Informes (curva, matriz, PDF, ANOVA y LSD) | ✅ |
-| 4 en adelante (nube compartida, web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
+| 4 · Servidor propio y sincronización entre teléfonos | ✅ (falta instalar el servidor) |
+| 5 en adelante (web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
 
 ## Descargar el APK de prueba
 
@@ -31,6 +32,7 @@ configurar una llave de firma propia (ver [docs/05-desarrollo.md](docs/05-desarr
 
 ```
 app/                      Proyecto Flutter (Android)
+server/                   Servidor de sincronización (Dart + PostgreSQL, Docker)
   lib/domain/             Reglas puras: semanas, nombre de fotos, definición de cultivos
   lib/data/               Base de datos local (SQLite/Drift) y repositorios
   lib/features/           Pantallas: proyectos, registro semanal, variedades, escala
@@ -50,6 +52,7 @@ docs/                     Tecnología, arquitectura, modelo de datos, plan y dec
 | [docs/03-plan-etapas.md](docs/03-plan-etapas.md) | Plan por etapas |
 | [docs/04-decisiones.md](docs/04-decisiones.md) | Decisiones tomadas |
 | [docs/05-desarrollo.md](docs/05-desarrollo.md) | Cómo compilar, probar y agregar cultivos |
+| [docs/06-servidor.md](docs/06-servidor.md) | Servidor propio: cómo funciona e instalación |
 
 ## Licencia
 

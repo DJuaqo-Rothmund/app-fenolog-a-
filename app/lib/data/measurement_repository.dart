@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../domain/measurement.dart';
 import 'database.dart';
+import 'ids.dart';
 
 /// Mediciones definidas por el usuario y sus valores.
 class MeasurementRepository {
@@ -91,7 +92,7 @@ class MeasurementRepository {
           .map((rows) => {for (final r in rows) r.defId: r});
 
   Future<void> setObservationValue(String observationId, String defId, MeasurementInput? value) => _upsert(
-    (v) => v.observationId.equals(observationId) & v.defId.equals(defId),
+    Ids.observationValue(defId, observationId),
     MeasurementValuesCompanion.insert(defId: defId, observationId: Value(observationId)),
     value,
   );
@@ -106,25 +107,20 @@ class MeasurementRepository {
     required String defId,
     required MeasurementInput? value,
   }) => _upsert(
-    (v) => v.seasonId.equals(seasonId) & v.varietyId.equals(varietyId) & v.defId.equals(defId),
+    Ids.varietyValue(defId, seasonId, varietyId),
     MeasurementValuesCompanion.insert(defId: defId, seasonId: Value(seasonId), varietyId: Value(varietyId)),
     value,
   );
 
-  /// Crea, actualiza o borra (si [value] es nulo) el valor que cumple [match].
-  Future<void> _upsert(
-    Expression<bool> Function($MeasurementValuesTable v) match,
-    MeasurementValuesCompanion insert,
-    MeasurementInput? value,
-  ) {
+  /// Crea, actualiza o borra (si [value] es nulo) el valor [id]. El id es
+  /// determinista, así que un valor borrado se «revive» al volver a escribirlo.
+  Future<void> _upsert(String id, MeasurementValuesCompanion insert, MeasurementInput? value) {
     return db.transaction(() async {
       final now = DateTime.now();
-      final existing = await (db.select(
-        db.measurementValues,
-      )..where((v) => match(v) & v.deletedAt.isNull())).getSingleOrNull();
+      final existing = await (db.select(db.measurementValues)..where((v) => v.id.equals(id))).getSingleOrNull();
       if (value == null) {
-        if (existing != null) {
-          await (db.update(db.measurementValues)..where((v) => v.id.equals(existing.id))).write(
+        if (existing != null && existing.deletedAt == null) {
+          await (db.update(db.measurementValues)..where((v) => v.id.equals(id))).write(
             MeasurementValuesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
           );
         }
@@ -133,14 +129,15 @@ class MeasurementRepository {
       final fields = MeasurementValuesCompanion(
         valueNum: Value(value.number),
         valueText: Value(value.text),
+        deletedAt: const Value(null),
         updatedAt: Value(now),
       );
       if (existing == null) {
         await db
             .into(db.measurementValues)
-            .insert(insert.copyWith(valueNum: fields.valueNum, valueText: fields.valueText));
+            .insert(insert.copyWith(id: Value(id), valueNum: fields.valueNum, valueText: fields.valueText));
       } else {
-        await (db.update(db.measurementValues)..where((v) => v.id.equals(existing.id))).write(fields);
+        await (db.update(db.measurementValues)..where((v) => v.id.equals(id))).write(fields);
       }
     });
   }

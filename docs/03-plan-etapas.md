@@ -14,7 +14,7 @@ rehacer nada.
 | **1 · MVP sin conexión** | Ver detalle abajo. | ✅ Primera versión lista para probar. |
 | **2 · Mediciones y datos** | Mediciones definidas por el usuario (planilla editable), parámetros por variedad, varias temporadas, exportar a Excel/CSV, importar temporadas anteriores desde CSV, copia de seguridad completa y **subida a Google Drive personal**. | ✅ Hecha. |
 | **3 · Informes** | Curva fenológica, matriz de estadios, informes PDF (semanal, temporada, ficha por variedad, comparación), compartir por WhatsApp/correo/Drive, comparación de tratamientos (ANOVA, LSD). | ✅ Hecha. |
-| **4 · Nube y sincronización** | Usuarios (Google + correo), Supabase, sincronización entre teléfonos, cola de subida de fotos (solo Wi-Fi opcional), roles por organización. | Varios teléfonos trabajando juntos. |
+| **4 · Nube y sincronización** | Servidor propio (Dart + PostgreSQL, sin Supabase), usuarios con correo y contraseña, roles dueño/editor/lectura, sincronización entre teléfonos (gana la edición más reciente), subida y descarga de fotos. Ver [06-servidor.md](06-servidor.md). | ✅ Hecha (falta instalar el servidor). |
 | **5 · Web** | Misma app en el navegador: consulta, edición en oficina, informes. | Acceso desde computador. |
 | **6 · IA en el teléfono** | Sugerencia top-3 del estadio desde la foto de detalle, reglas agronómicas (no retroceder, ritmo semanal), registro de aceptado/corregido, modelo descargable por cultivo. | IA que ayuda en terreno. |
 | **7 · Cuenta maestra** | Consentimiento por usuario, vista de entrenamiento, exportación del conjunto de datos, entrenamiento en Python y publicación de nuevos modelos. | IA que mejora con los datos de todos. |

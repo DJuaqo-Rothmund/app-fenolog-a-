@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../domain/crop_definition.dart';
 import 'database.dart';
+import 'ids.dart';
 
 /// Cultivos incluidos en la app. Agregar un cultivo = agregar su JSON aquí.
 const bundledCropAssets = ['assets/crops/rubus-idaeus.json'];
@@ -39,19 +40,24 @@ class CropImporter {
         updatedAt: Value(now),
       );
       if (crop == null) {
-        crop = await db.into(db.crops).insertReturning(cropFields);
-      } else {
+        crop = await db.into(db.crops).insertReturning(cropFields.copyWith(id: Value(Ids.crop(def.code))));
+      } else if (crop.shortCode != def.shortCode ||
+          crop.name != def.name ||
+          crop.scientificName != def.scientificName ||
+          crop.seasonStartMonth != def.seasonStartMonth ||
+          crop.seasonStartDay != def.seasonStartDay) {
+        // Solo se escribe si algo cambió, para no sincronizar en cada inicio.
         await (db.update(db.crops)..where((c) => c.id.equals(crop!.id))).write(cropFields);
       }
 
       for (final scaleDef in def.scales) {
-        await _importScale(crop.id, scaleDef, now);
+        await _importScale(crop.id, def.code, scaleDef, now);
       }
       return crop.id;
     });
   }
 
-  Future<void> _importScale(String cropId, ScaleDef def, DateTime now) async {
+  Future<void> _importScale(String cropId, String cropCode, ScaleDef def, DateTime now) async {
     final existing = await (db.select(
       db.phenoScales,
     )..where((s) => s.cropId.equals(cropId) & s.name.equals(def.name))).getSingleOrNull();
@@ -64,6 +70,7 @@ class CropImporter {
                   .into(db.phenoScales)
                   .insertReturning(
                     PhenoScalesCompanion.insert(
+                      id: Value(Ids.scale(cropCode, def.name)),
                       cropId: cropId,
                       name: def.name,
                       version: def.version,
@@ -86,7 +93,15 @@ class CropImporter {
       if (old == null) {
         await db
             .into(db.phenoMacros)
-            .insert(PhenoMacrosCompanion.insert(scaleId: scaleId, code: m.code, name: m.name, sortOrder: i));
+            .insert(
+              PhenoMacrosCompanion.insert(
+                id: Value(Ids.macro(scaleId, m.code)),
+                scaleId: scaleId,
+                code: m.code,
+                name: m.name,
+                sortOrder: i,
+              ),
+            );
       } else {
         await (db.update(db.phenoMacros)..where((x) => x.id.equals(old.id))).write(
           PhenoMacrosCompanion(name: Value(m.name), sortOrder: Value(i), updatedAt: Value(now)),
@@ -110,7 +125,7 @@ class CropImporter {
         updatedAt: Value(now),
       );
       if (old == null) {
-        await db.into(db.phenoStages).insert(fields);
+        await db.into(db.phenoStages).insert(fields.copyWith(id: Value(Ids.stage(scaleId, s.code))));
       } else {
         await (db.update(db.phenoStages)..where((x) => x.id.equals(old.id))).write(fields);
       }

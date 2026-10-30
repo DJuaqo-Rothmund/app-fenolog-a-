@@ -14,6 +14,16 @@ jobs:
     defaults:
       run:
         working-directory: app
+    services:
+      # Para la prueba de sincronización de extremo a extremo.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: frambitacora_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -70,3 +80,33 @@ jobs:
           name: frambitacora-apk-${{ github.run_number }}
           path: app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: frambitacora_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.13.7"
+      - name: Dependencias
+        run: dart pub get
+      - name: Formato
+        run: dart format --set-exit-if-changed .
+      - name: Análisis
+        run: dart analyze --fatal-infos
+      - name: Pruebas (con PostgreSQL)
+        run: dart test
+      - name: Imagen Docker
+        run: docker build -t frambitacora-server .

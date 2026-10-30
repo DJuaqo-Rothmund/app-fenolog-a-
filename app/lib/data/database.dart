@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import 'sync_schema.dart';
+
 part 'database.g.dart';
 
 const _uuid = Uuid();
@@ -163,6 +165,24 @@ class MeasurementValues extends Table with SyncColumns {
   TextColumn get valueText => text().nullable()();
 }
 
+/// Cambios locales pendientes de enviar al servidor (los llenan triggers).
+@DataClassName('OutboxEntry')
+class SyncOutbox extends Table {
+  IntColumn get seq => integer().autoIncrement()();
+  TextColumn get tbl => text()();
+  TextColumn get rowId => text()();
+}
+
+/// Estado de la sincronización: servidor, sesión, cursor, etc.
+@DataClassName('SyncMetaEntry')
+class SyncMeta extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {key};
+}
+
 @DriftDatabase(
   tables: [
     Crops,
@@ -178,6 +198,8 @@ class MeasurementValues extends Table with SyncColumns {
     Photos,
     MeasurementDefs,
     MeasurementValues,
+    SyncOutbox,
+    SyncMeta,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -186,14 +208,29 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
+
+  Map<String, List<String>> get _columnsByTable => {
+    for (final t in allTables) t.actualTableName: [for (final c in t.$columns) c.name],
+  };
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await createSyncTriggers(this, _columnsByTable);
+    },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.createTable(measurementDefs);
         await m.createTable(measurementValues);
+      }
+      if (from < 3) {
+        await m.createTable(syncOutbox);
+        await m.createTable(syncMeta);
+        await remapToDeterministicIds(this);
+        await createSyncTriggers(this, _columnsByTable);
+        await seedOutbox(this);
       }
     },
     beforeOpen: (details) async {

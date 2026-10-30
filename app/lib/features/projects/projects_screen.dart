@@ -6,6 +6,8 @@ import '../../domain/project_kind.dart';
 import '../../providers.dart';
 import '../common.dart';
 import '../export/backup_screen.dart';
+import '../sync/sync_controller.dart';
+import '../sync/sync_screen.dart';
 import '../scale/scale_screen.dart';
 import '../varieties/varieties_screen.dart';
 import 'project_form_screen.dart';
@@ -21,6 +23,13 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   bool _grid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Sincroniza al abrir y luego cada 10 minutos (si hay sesión).
+    Future.microtask(() => ref.read(syncControllerProvider.notifier).start());
+  }
 
   Future<void> _openCatalog(Widget Function(Crop crop) screen) async {
     final crop = await pickCrop(context, ref);
@@ -38,6 +47,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
       appBar: AppBar(
         title: const Text('FramBitácora'),
         actions: [
+          const _SyncButton(),
           IconButton(
             tooltip: _grid ? 'Ver como lista' : 'Ver como cuadrícula',
             icon: Icon(_grid ? Icons.view_list : Icons.grid_view),
@@ -138,6 +148,39 @@ class _ProjectCard extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+/// Nube en la barra: muestra si hay cambios por enviar o sincronización en curso.
+class _SyncButton extends ConsumerWidget {
+  const _SyncButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(syncSessionProvider).value;
+    final pending = ref.watch(syncPendingProvider).value ?? 0;
+    final state = ref.watch(syncControllerProvider);
+    final icon = session == null
+        ? Icons.cloud_off_outlined
+        : state.running
+        ? Icons.cloud_sync_outlined
+        : state.error != null
+        ? Icons.cloud_off
+        : pending > 0
+        ? Icons.cloud_upload_outlined
+        : Icons.cloud_done_outlined;
+    final tooltip = session == null
+        ? 'Equipo y sincronización (sin conectar)'
+        : state.running
+        ? 'Sincronizando…'
+        : pending > 0
+        ? '$pending cambios por enviar'
+        : 'Sincronizado';
+    return IconButton(
+      tooltip: tooltip,
+      icon: Badge(isLabelVisible: session != null && pending > 0, label: Text('$pending'), child: Icon(icon)),
+      onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const SyncScreen())),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'data/measurement_repository.dart';
 import 'data/photo_store.dart';
 import 'data/project_repository.dart';
 import 'data/sampling_repository.dart';
+import 'data/sync/sync_engine.dart';
 import 'domain/measurement.dart';
 
 /// Se reemplaza en `main.dart` (base real) y en las pruebas (base en memoria).
@@ -84,3 +85,10 @@ final observationValuesProvider = StreamProvider.family<Map<String, MeasurementV
 final varietyValuesProvider = StreamProvider.family<List<MeasurementValue>, String>(
   (ref, seasonId) => ref.watch(measurementRepositoryProvider).watchVarietyValues(seasonId),
 );
+
+final syncEngineProvider = Provider((ref) => SyncEngine(ref.watch(databaseProvider), ref.watch(photoStoreProvider)));
+
+final syncSessionProvider = StreamProvider((ref) => ref.watch(syncEngineProvider).watchSession());
+
+/// Cambios del teléfono que aún no llegan al servidor.
+final syncPendingProvider = StreamProvider((ref) => ref.watch(syncEngineProvider).watchPending());
