@@ -37,7 +37,8 @@ jobs:
           git diff --exit-code -- lib
 
       - name: Formato
-        run: dart format --set-exit-if-changed lib test
+        # Los archivos *.g.dart los genera build_runner con su propio formato.
+        run: dart format --set-exit-if-changed $(find lib test -name '*.dart' ! -name '*.g.dart')
 
       - name: Análisis
         run: flutter analyze
