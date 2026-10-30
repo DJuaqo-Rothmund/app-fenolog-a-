@@ -16,7 +16,10 @@ import 'project_screen.dart';
 
 /// Pantalla de inicio: lista de proyectos (ensayos y predios).
 class ProjectsScreen extends ConsumerStatefulWidget {
-  const ProjectsScreen({super.key});
+  const ProjectsScreen({super.key, required this.crop});
+
+  /// Cultivo elegido en la portada.
+  final Crop crop;
 
   @override
   ConsumerState<ProjectsScreen> createState() => _ProjectsScreenState();
@@ -25,28 +28,18 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   bool _grid = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Sincroniza al abrir y luego cada 10 minutos (si hay sesión).
-    Future.microtask(() => ref.read(syncControllerProvider.notifier).start());
-  }
-
-  Future<void> _openCatalog(Widget Function(Crop crop) screen) async {
-    final crop = await pickCrop(context, ref);
-    if (crop == null || !mounted) return;
-    await Navigator.push(context, MaterialPageRoute<void>(builder: (_) => screen(crop)));
-  }
+  Future<void> _openCatalog(Widget Function(Crop crop) screen) =>
+      Navigator.push(context, MaterialPageRoute<void>(builder: (_) => screen(widget.crop)));
 
   void _openProject(Project p) =>
       Navigator.push(context, MaterialPageRoute<void>(builder: (_) => ProjectScreen(projectId: p.id)));
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectsProvider);
+    final projects = ref.watch(projectsProvider(widget.crop.id));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FramBitácora'),
+        title: Text(widget.crop.name),
         actions: [
           const _SyncButton(),
           IconButton(
@@ -69,7 +62,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const ProjectFormScreen())),
+        onPressed: () =>
+            Navigator.push(context, MaterialPageRoute<void>(builder: (_) => ProjectFormScreen(crop: widget.crop))),
         icon: const Icon(Icons.add),
         label: const Text('Proyecto'),
       ),

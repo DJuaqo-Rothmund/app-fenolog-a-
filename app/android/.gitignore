@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Llave de pruebas fija (no sirve para publicar; ver app/build.gradle.kts).
+!app/frambitacora-pruebas.jks

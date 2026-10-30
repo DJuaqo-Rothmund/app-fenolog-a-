@@ -39,10 +39,40 @@ void main() {
     }
   }
 
-  testWidgets('sin proyectos se muestra la invitación a crear uno', (tester) async {
+  /// Desde la portada: entra al frambueso sin sincronizar.
+  Future<void> enterLocal(WidgetTester tester) async {
+    await tester.tap(find.text('Continuar de forma local'));
+    await settle(tester);
+  }
+
+  testWidgets('portada: elegir cultivo y cómo trabajar', (tester) async {
     await tester.pumpWidget(app());
     await settle(tester);
     expect(find.text('FramBitácora'), findsOneWidget);
+    expect(find.text('Frambueso'), findsOneWidget);
+    expect(find.text('Rubus idaeus'), findsOneWidget);
+    expect(find.text('0 proyectos'), findsOneWidget);
+    expect(find.text('Sincronizar con mi correo'), findsOneWidget);
+
+    // Sin sesión, sincronizar lleva a iniciar sesión con el correo.
+    await tester.tap(find.text('Sincronizar con mi correo'));
+    await settle(tester);
+    expect(find.text('Dirección del servidor'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await settle(tester);
+
+    await enterLocal(tester);
+    expect(find.text('Frambueso'), findsOneWidget, reason: 'título de la lista de proyectos');
+    final prefs = await tester.runAsync(() => db.select(db.syncMeta).get());
+    expect(prefs!.map((m) => m.key), contains('pref_last_crop'));
+
+    await finish(tester);
+  });
+
+  testWidgets('sin proyectos se muestra la invitación a crear uno', (tester) async {
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await enterLocal(tester);
     expect(find.textContaining('Aún no hay proyectos'), findsOneWidget);
 
     await finish(tester);
@@ -51,6 +81,7 @@ void main() {
   testWidgets('crear un proyecto desde el formulario', (tester) async {
     await tester.pumpWidget(app());
     await settle(tester);
+    await enterLocal(tester);
 
     await tester.tap(find.text('Proyecto'));
     await settle(tester);
@@ -94,6 +125,7 @@ void main() {
 
     await tester.pumpWidget(app());
     await settle(tester);
+    await enterLocal(tester);
     await tester.tap(find.text('Ensayo'));
     await settle(tester);
 
@@ -133,6 +165,7 @@ void main() {
 
     await tester.pumpWidget(app());
     await settle(tester);
+    await enterLocal(tester);
     await tester.tap(find.text('Ensayo'));
     await settle(tester);
 

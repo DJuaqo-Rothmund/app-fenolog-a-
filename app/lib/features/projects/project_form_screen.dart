@@ -9,7 +9,10 @@ import '../common.dart';
 
 /// Crear un proyecto con su primera temporada.
 class ProjectFormScreen extends ConsumerStatefulWidget {
-  const ProjectFormScreen({super.key});
+  const ProjectFormScreen({super.key, this.crop});
+
+  /// Cultivo elegido en la portada; si es nulo se puede elegir aquí.
+  final Crop? crop;
 
   @override
   ConsumerState<ProjectFormScreen> createState() => _ProjectFormScreenState();
@@ -76,7 +79,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
       body: asyncView(crops, (list) {
         if (_crop == null && list.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _crop == null) _selectCrop(list.first);
+            if (mounted && _crop == null) _selectCrop(widget.crop ?? list.first);
           });
         }
         return Form(
@@ -103,12 +106,13 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<Crop>(
-                initialValue: _crop,
-                decoration: const InputDecoration(labelText: 'Cultivo'),
-                items: [for (final c in list) DropdownMenuItem(value: c, child: Text(c.name))],
-                onChanged: (c) => c == null ? null : _selectCrop(c),
-              ),
+              if (widget.crop == null)
+                DropdownButtonFormField<Crop>(
+                  initialValue: _crop,
+                  decoration: const InputDecoration(labelText: 'Cultivo'),
+                  items: [for (final c in list) DropdownMenuItem(value: c, child: Text(c.name))],
+                  onChanged: (c) => c == null ? null : _selectCrop(c),
+                ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _season,

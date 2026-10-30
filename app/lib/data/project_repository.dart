@@ -8,9 +8,10 @@ class ProjectRepository {
   ProjectRepository(this.db);
   final AppDatabase db;
 
-  Stream<List<Project>> watchProjects() =>
+  /// Proyectos vigentes; con [cropId], solo los de ese cultivo.
+  Stream<List<Project>> watchProjects({String? cropId}) =>
       (db.select(db.projects)
-            ..where((p) => p.deletedAt.isNull())
+            ..where((p) => p.deletedAt.isNull() & (cropId == null ? const Constant(true) : p.cropId.equals(cropId)))
             ..orderBy([(p) => OrderingTerm(expression: p.archived), (p) => OrderingTerm(expression: p.name)]))
           .watch();
 

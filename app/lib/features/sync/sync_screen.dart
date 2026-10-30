@@ -13,20 +13,24 @@ const roleLabels = {'owner': 'Dueño', 'editor': 'Editor', 'viewer': 'Solo lectu
 
 /// Conexión con el servidor del equipo y estado de la sincronización.
 class SyncScreen extends ConsumerWidget {
-  const SyncScreen({super.key});
+  const SyncScreen({super.key, this.closeOnLogin = false});
+
+  /// Vuelve a la pantalla anterior apenas se inicia sesión (desde la portada).
+  final bool closeOnLogin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(syncSessionProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Equipo y sincronización')),
-      body: asyncView(session, (s) => s == null ? const _LoginForm() : _Connected(session: s)),
+      body: asyncView(session, (s) => s == null ? _LoginForm(closeOnLogin: closeOnLogin) : _Connected(session: s)),
     );
   }
 }
 
 class _LoginForm extends ConsumerStatefulWidget {
-  const _LoginForm();
+  const _LoginForm({required this.closeOnLogin});
+  final bool closeOnLogin;
 
   @override
   ConsumerState<_LoginForm> createState() => _LoginFormState();
@@ -65,6 +69,7 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
             device: kIsWeb ? 'Navegador' : 'Android',
           );
       ref.read(syncControllerProvider.notifier).start();
+      if (widget.closeOnLogin && mounted) Navigator.pop(context);
     } on SyncException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'features/projects/projects_screen.dart';
+import 'features/home/home_screen.dart';
 
 const _leafGreen = Color(0xFF2F6B3A);
 const _berryRed = Color(0xFFB0204E);
@@ -25,7 +25,7 @@ class FramBitacoraApp extends StatelessWidget {
       locale: const Locale('es'),
       supportedLocales: const [Locale('es')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      home: const ProjectsScreen(),
+      home: const HomeScreen(),
     );
   }
 }

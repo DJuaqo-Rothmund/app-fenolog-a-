@@ -26,8 +26,9 @@ en un archivo JSON, sin cambiar código).
 
 Las ramas de trabajo (`claude/...`) también generan APK en Actions.
 
-Para que cada versión nueva se instale encima de la anterior sin desinstalar, hay que
-configurar una llave de firma propia (ver [docs/05-desarrollo.md](docs/05-desarrollo.md)).
+Desde esta versión todos los APK se firman con la misma llave de pruebas, así cada uno
+se instala **encima** del anterior sin perder datos. Para publicar en Google Play hay que
+configurar una llave propia (ver [docs/05-desarrollo.md](docs/05-desarrollo.md)).
 
 ## Estructura
 

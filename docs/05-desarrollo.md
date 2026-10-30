@@ -57,9 +57,16 @@ y publica el APK como *artifact*.
 
 ## Llave de firma del APK
 
-Sin llave propia, cada compilación de GitHub se firma con una llave de depuración distinta
-y Android obliga a desinstalar (y perder los datos) antes de instalar la versión nueva.
-Para evitarlo, crear una vez una llave y guardarla como secretos del repositorio:
+Android solo instala una versión nueva **encima** de la anterior (sin borrar los datos)
+si ambas están firmadas con la misma llave.
+
+- **Por defecto** los APK de GitHub se firman con la llave de pruebas fija del
+  repositorio (`app/android/app/frambitacora-pruebas.jks`). Así cada APK nuevo se
+  instala sobre el anterior. Como esa llave es pública, **no sirve para publicar** en
+  Google Play.
+- **Para publicar**, crear una llave propia y guardarla como secretos del repositorio; si
+  existen, GitHub la usa en vez de la de pruebas (el cambio de llave obliga a desinstalar
+  una vez):
 
 ```bash
 keytool -genkey -v -keystore frambitacora.jks -keyalg RSA -keysize 2048 -validity 10000 -alias frambitacora
@@ -73,6 +80,9 @@ En GitHub → Settings → Secrets and variables → Actions, crear:
 `ANDROID_KEYSTORE_BASE64` (el texto del segundo comando), `ANDROID_KEYSTORE_PASSWORD`,
 `ANDROID_KEY_ALIAS` (`frambitacora`) y `ANDROID_KEY_PASSWORD`. Guardar el archivo `.jks` en
 un lugar seguro y **nunca** subirlo al repositorio.
+
+Huella SHA-1 de la llave de pruebas (para registrar la app en Google Cloud, ver abajo):
+`C9:83:13:A5:EA:A2:50:DA:37:03:B4:88:9D:67:07:91:B5:99:93:EC`
 
 ## Google Drive personal
 
@@ -92,9 +102,8 @@ vez**:
    keytool -list -v -keystore frambitacora.jks -alias frambitacora
    ```
 
-   Si aún no hay llave propia, el APK de GitHub se firma con una llave de depuración que
-   cambia en cada compilación y Drive no funcionará; por eso conviene configurar primero
-   la llave de firma (sección anterior).
+   Con la llave de pruebas, usar la huella indicada en la sección anterior. Si después
+   se configura una llave propia, agregar también su huella.
 
 No hay que copiar ningún dato en el código: Google reconoce la app por el paquete y la
 huella. Sin este registro, «Subir a mi Google Drive» muestra un aviso y se puede usar

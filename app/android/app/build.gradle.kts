@@ -7,8 +7,10 @@ plugins {
 }
 
 // Firma: si existe android/key.properties (lo crea GitHub Actions a partir de
-// los secretos del repositorio) se usa esa llave, así cada versión nueva se
-// instala encima de la anterior. Si no existe, se firma con la llave de depuración.
+// los secretos del repositorio) se usa esa llave. Si no, se usa la llave de
+// pruebas fija del repositorio (app/frambitacora-pruebas.jks): así cada APK de
+// GitHub se instala encima del anterior sin borrar los datos. Para publicar en
+// Google Play se debe configurar una llave propia (ver docs/05-desarrollo.md).
 val keyProperties = Properties().apply {
     val f = rootProject.file("key.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -39,19 +41,24 @@ android {
     }
 
     signingConfigs {
-        if (keyProperties.containsKey("storeFile")) {
-            create("release") {
+        create("release") {
+            if (keyProperties.containsKey("storeFile")) {
                 storeFile = rootProject.file(keyProperties.getProperty("storeFile"))
                 storePassword = keyProperties.getProperty("storePassword")
                 keyAlias = keyProperties.getProperty("keyAlias")
                 keyPassword = keyProperties.getProperty("keyPassword")
+            } else {
+                storeFile = file("frambitacora-pruebas.jks")
+                storePassword = "frambitacora-pruebas"
+                keyAlias = "pruebas"
+                keyPassword = "frambitacora-pruebas"
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

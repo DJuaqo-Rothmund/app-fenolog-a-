@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/catalog_repository.dart';
 import 'data/database.dart';
+import 'data/local_prefs.dart';
 import 'data/measurement_repository.dart';
 import 'data/photo_store.dart';
 import 'data/project_repository.dart';
@@ -40,7 +41,10 @@ final varietiesProvider = StreamProvider.family<List<Variety>, ({String cropId, 
   (ref, a) => ref.watch(catalogRepositoryProvider).watchVarieties(a.cropId, includeArchived: a.includeArchived),
 );
 
-final projectsProvider = StreamProvider((ref) => ref.watch(projectRepositoryProvider).watchProjects());
+/// Proyectos de un cultivo.
+final projectsProvider = StreamProvider.family<List<Project>, String>(
+  (ref, cropId) => ref.watch(projectRepositoryProvider).watchProjects(cropId: cropId),
+);
 
 final projectProvider = StreamProvider.family<Project, String>(
   (ref, id) => ref.watch(projectRepositoryProvider).watchProject(id),
@@ -92,3 +96,17 @@ final syncSessionProvider = StreamProvider((ref) => ref.watch(syncEngineProvider
 
 /// Cambios del teléfono que aún no llegan al servidor.
 final syncPendingProvider = StreamProvider((ref) => ref.watch(syncEngineProvider).watchPending());
+
+final localPrefsProvider = Provider((ref) => LocalPrefs(ref.watch(databaseProvider)));
+
+/// Cantidad de proyectos vigentes por cultivo (para la portada).
+final projectCountsProvider = StreamProvider<Map<String, int>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db
+      .customSelect(
+        'SELECT crop_id, COUNT(*) AS n FROM projects WHERE deleted_at IS NULL GROUP BY crop_id',
+        readsFrom: {db.projects},
+      )
+      .watch()
+      .map((rows) => {for (final r in rows) r.read<String>('crop_id'): r.read<int>('n')});
+});
