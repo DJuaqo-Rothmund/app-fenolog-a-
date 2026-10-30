@@ -3,7 +3,7 @@ import 'season_data.dart';
 
 /// Tablas de una temporada (primera fila = encabezados). Las celdas son
 /// `String`, `int`, `double`, `DateTime` o nulas; Excel y CSV las convierten.
-typedef Table = List<List<Object?>>;
+typedef SheetTable = List<List<Object?>>;
 
 /// Encabezados fijos de la hoja «Registros». La importación desde CSV
 /// reconoce estos mismos nombres.
@@ -27,7 +27,7 @@ const recordHeaders = [
 ];
 
 /// Un registro por fila: unidad × semana, con sus mediciones como columnas.
-Table recordsTable(SeasonData d) {
+SheetTable recordsTable(SeasonData d) {
   final defs = d.observationDefs;
   return [
     [...recordHeaders, for (final m in defs) m.unit.isEmpty ? m.name : '${m.name} (${m.unit})'],
@@ -55,7 +55,7 @@ Table recordsTable(SeasonData d) {
 }
 
 /// Una fila por variedad con sus parámetros de la temporada.
-Table varietyParamsTable(SeasonData d) => [
+SheetTable varietyParamsTable(SeasonData d) => [
   ['Variedad', for (final m in d.varietyDefs) m.unit.isEmpty ? m.name : '${m.name} (${m.unit})'],
   for (final v in d.usedVarieties)
     [
@@ -65,7 +65,7 @@ Table varietyParamsTable(SeasonData d) => [
 ];
 
 /// Matriz unidad × semana con el código del estadio («NM» = no muestreada).
-Table stageMatrixTable(SeasonData d) {
+SheetTable stageMatrixTable(SeasonData d) {
   final weeks = d.weeks;
   return [
     ['Unidad', 'Variedad', for (final w in weeks) 'S$w'],
@@ -79,7 +79,7 @@ Table stageMatrixTable(SeasonData d) {
 }
 
 /// Escala fenológica usada por el proyecto.
-Table scaleTable(SeasonData d) => [
+SheetTable scaleTable(SeasonData d) => [
   ['Código', 'Macroestadio', 'Nombre', 'Descripción'],
   for (final s in d.stages) [s.code, s.macroCode, s.name, s.description],
 ];

@@ -13,6 +13,7 @@ dependencies:
   drift_flutter: ^0.3.1
   excel: ^4.0.6
   file_picker: ^13.3.0
+  fl_chart: ^1.3.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -25,6 +26,7 @@ dependencies:
   intl: ^0.20.3
   path: ^1.9.1
   path_provider: ^2.1.6
+  pdf: ^3.12.0
   share_plus: ^13.3.1
   uuid: ^4.6.0
 
@@ -39,3 +41,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/crops/
+    - assets/fonts/

@@ -11,7 +11,9 @@ en un archivo JSON, sin cambiar código).
 |---|---|
 | 0 · Fundaciones (proyecto, pruebas, compilación automática) | ✅ |
 | 1 · MVP sin conexión (cultivos, variedades, proyectos, unidades, semanas, registro con fotos) | ✅ para probar en terreno |
-| 2 en adelante (mediciones, informes, nube, web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
+| 2 · Mediciones, Excel/CSV, respaldo y Google Drive | ✅ |
+| 3 · Informes (curva, matriz, PDF, ANOVA y LSD) | ✅ |
+| 4 en adelante (nube compartida, web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
 
 ## Descargar el APK de prueba
 
@@ -19,6 +21,8 @@ en un archivo JSON, sin cambiar código).
 2. Al final de la página, en **Artifacts**, descargar `frambitacora-apk-N` (es un .zip con
    el archivo `app-release.apk`).
 3. Copiar el APK al teléfono Android y abrirlo (permitir «instalar apps desconocidas»).
+
+Las ramas de trabajo (`claude/...`) también generan APK en Actions.
 
 Para que cada versión nueva se instale encima de la anterior sin desinstalar, hay que
 configurar una llave de firma propia (ver [docs/05-desarrollo.md](docs/05-desarrollo.md)).

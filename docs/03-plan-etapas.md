@@ -12,8 +12,8 @@ rehacer nada.
 |---|---|---|
 | **0 · Fundaciones** | Proyecto Flutter, estructura de carpetas, análisis de código, pruebas, compilación automática en GitHub Actions (APK de prueba). | ✅ Hecha. |
 | **1 · MVP sin conexión** | Ver detalle abajo. | ✅ Primera versión lista para probar. |
-| **2 · Mediciones y datos** | Mediciones definidas por el usuario (planilla editable), parámetros por variedad, exportar a Excel, importar temporadas anteriores desde CSV, copia de seguridad local completa. | Datos completos y portables. |
-| **3 · Informes** | Línea de tiempo con curva fenológica, informes PDF (semanal, período, ficha por variedad, matriz comparativa), compartir por WhatsApp/correo. Luego comparación de tratamientos (ANOVA, LSD). | Informes para entregar. |
+| **2 · Mediciones y datos** | Mediciones definidas por el usuario (planilla editable), parámetros por variedad, varias temporadas, exportar a Excel/CSV, importar temporadas anteriores desde CSV, copia de seguridad completa y **subida a Google Drive personal**. | ✅ Hecha. |
+| **3 · Informes** | Curva fenológica, matriz de estadios, informes PDF (semanal, temporada, ficha por variedad, comparación), compartir por WhatsApp/correo/Drive, comparación de tratamientos (ANOVA, LSD). | ✅ Hecha. |
 | **4 · Nube y sincronización** | Usuarios (Google + correo), Supabase, sincronización entre teléfonos, cola de subida de fotos (solo Wi-Fi opcional), roles por organización. | Varios teléfonos trabajando juntos. |
 | **5 · Web** | Misma app en el navegador: consulta, edición en oficina, informes. | Acceso desde computador. |
 | **6 · IA en el teléfono** | Sugerencia top-3 del estadio desde la foto de detalle, reglas agronómicas (no retroceder, ritmo semanal), registro de aceptado/corregido, modelo descargable por cultivo. | IA que ayuda en terreno. |
@@ -37,6 +37,18 @@ Estado: implementada, con pruebas automáticas. Pendiente de prueba en terreno.
    notas, GPS opcional; regla de completitud.
 7. **Pruebas:** cálculo de semanas, completitud, nombres de fotos, orden de estadios,
    repositorios con base en memoria y pruebas de las pantallas principales.
+
+## Etapas 2 y 3 (detalle)
+
+- **Mediciones** (menú del proyecto → Mediciones): número, entero, texto u opción; con
+  unidad, mínimo y máximo. «Cada semana» aparece en el registro; «una vez por variedad y
+  temporada» en Parámetros por variedad.
+- **Temporadas:** nueva temporada, cambiar y editar desde el menú del proyecto.
+- **Exportar, Drive e importar** (menú del proyecto): Excel, CSV, subir a Google Drive e
+  importar CSV.
+- **Respaldo y Google Drive** (menú de inicio): respaldo .zip, subirlo a Drive y restaurar.
+- **Informes y gráficos** (menú del proyecto): curva, matriz, comparación estadística y
+  PDF. La comparación usa las repeticiones como bloques en ensayos de tratamientos.
 
 **Fuera del MVP:** informes, IA, nube, web, mapas, recordatorios, celebración animada al
 completar la semana (hoy es un mensaje con ícono).

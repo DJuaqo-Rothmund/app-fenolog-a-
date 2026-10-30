@@ -9,7 +9,7 @@ import 'season_tables.dart' as t;
 List<int> buildSeasonWorkbook(SeasonData d) {
   final excel = Excel.createExcel();
   final defaultSheet = excel.getDefaultSheet()!;
-  final sheets = <String, t.Table>{
+  final sheets = <String, t.SheetTable>{
     'Registros': t.recordsTable(d),
     'Matriz de estadios': t.stageMatrixTable(d),
     if (d.varietyDefs.isNotEmpty) 'Parámetros por variedad': t.varietyParamsTable(d),
@@ -40,7 +40,7 @@ CellValue? _cell(Object? v) => switch (v) {
 };
 
 /// CSV con punto y coma y coma decimal (lo que espera Excel en español).
-String toCsv(t.Table table) {
+String toCsv(t.SheetTable table) {
   String cell(Object? v) {
     final s = switch (v) {
       null => '',

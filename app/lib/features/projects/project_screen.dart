@@ -11,6 +11,7 @@ import '../common.dart';
 import '../export/export_screen.dart';
 import '../measurements/measurement_defs_screen.dart';
 import '../measurements/variety_params_screen.dart';
+import '../reports/reports_screen.dart';
 import '../sampling/observation_screen.dart';
 import 'unit_form.dart';
 
@@ -182,6 +183,8 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
                 switch (v) {
                   case 'measurements':
                     _open(MeasurementDefsScreen(projectId: p.id));
+                  case 'reports' when s != null:
+                    _open(ReportsScreen(project: p, season: s, week: _week ?? _currentWeek(s)));
                   case 'export' when s != null:
                     _open(ExportScreen(project: p, season: s));
                   case 'params' when s != null:
@@ -197,6 +200,7 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
                 }
               },
               itemBuilder: (_) => [
+                const PopupMenuItem(value: 'reports', child: Text('Informes y gráficos')),
                 const PopupMenuItem(value: 'export', child: Text('Exportar, Drive e importar')),
                 const PopupMenuDivider(),
                 const PopupMenuItem(value: 'measurements', child: Text('Mediciones')),
