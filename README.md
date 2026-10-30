@@ -1,30 +1,52 @@
 # FramBitácora
 
 Cuaderno de campo digital para el **seguimiento fenológico de cultivos**: registro semanal
-del estado fenológico con fotos, notas y mediciones, funcionando **sin conexión** y
-sincronizando entre teléfonos y web cuando hay red. Primer cultivo: **frambueso**;
-diseñada desde el inicio para muchos cultivos.
-
-Proyecto nuevo, escrito desde cero. No reutiliza código, diseños, logos ni textos de
-aplicaciones anteriores.
+del estado fenológico con fotos, notas y ubicación, que funciona **sin conexión**.
+Primer cultivo: **frambueso**; preparada para muchos cultivos más (cada cultivo se define
+en un archivo JSON, sin cambiar código).
 
 ## Estado
 
-Etapa 0 · Planificación. Todavía no hay código: primero se acuerdan la arquitectura,
-el modelo de datos y el plan.
+| Etapa | Estado |
+|---|---|
+| 0 · Fundaciones (proyecto, pruebas, compilación automática) | ✅ |
+| 1 · MVP sin conexión (cultivos, variedades, proyectos, unidades, semanas, registro con fotos) | ✅ para probar en terreno |
+| 2 en adelante (mediciones, informes, nube, web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
+
+## Descargar el APK de prueba
+
+1. En GitHub, pestaña **Actions** → flujo **Android** → la ejecución más reciente en verde.
+2. Al final de la página, en **Artifacts**, descargar `frambitacora-apk-N` (es un .zip con
+   el archivo `app-release.apk`).
+3. Copiar el APK al teléfono Android y abrirlo (permitir «instalar apps desconocidas»).
+
+Para que cada versión nueva se instale encima de la anterior sin desinstalar, hay que
+configurar una llave de firma propia (ver [docs/05-desarrollo.md](docs/05-desarrollo.md)).
+
+## Estructura
+
+```
+app/                      Proyecto Flutter (Android)
+  lib/domain/             Reglas puras: semanas, nombre de fotos, definición de cultivos
+  lib/data/               Base de datos local (SQLite/Drift) y repositorios
+  lib/features/           Pantallas: proyectos, registro semanal, variedades, escala
+  assets/crops/           Definiciones de cultivos (frambueso)
+  test/                   Pruebas automáticas
+docs/                     Tecnología, arquitectura, modelo de datos, plan y decisiones
+.github/workflows/        Pruebas y compilación del APK en cada cambio
+```
 
 ## Documentos
 
 | Documento | Contenido |
 |---|---|
-| [docs/00-tecnologia.md](docs/00-tecnologia.md) | Tecnología recomendada, pros y contras, alternativas |
-| [docs/01-arquitectura.md](docs/01-arquitectura.md) | Arquitectura (diagramas) y cómo funciona sin conexión |
+| [docs/00-tecnologia.md](docs/00-tecnologia.md) | Tecnología elegida, pros y contras |
+| [docs/01-arquitectura.md](docs/01-arquitectura.md) | Arquitectura y funcionamiento sin conexión |
 | [docs/02-modelo-datos.md](docs/02-modelo-datos.md) | Modelo de datos multi-cultivo |
-| [docs/03-plan-etapas.md](docs/03-plan-etapas.md) | Plan por etapas, empezando por el MVP |
-| [docs/04-licencia.md](docs/04-licencia.md) | Recomendación de licencia y propiedad |
-| [docs/05-preguntas.md](docs/05-preguntas.md) | Preguntas abiertas antes de empezar a programar |
+| [docs/03-plan-etapas.md](docs/03-plan-etapas.md) | Plan por etapas |
+| [docs/04-decisiones.md](docs/04-decisiones.md) | Decisiones tomadas |
+| [docs/05-desarrollo.md](docs/05-desarrollo.md) | Cómo compilar, probar y agregar cultivos |
 
-## Propiedad
+## Licencia
 
-© 2026 Joaquín Rothmund. Todos los derechos reservados, hasta definir la licencia
-(ver [docs/04-licencia.md](docs/04-licencia.md)).
+[MIT](LICENSE).

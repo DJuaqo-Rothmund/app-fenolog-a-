@@ -85,7 +85,7 @@ app/                      Proyecto Flutter
       reports/            informes (etapa posterior)
       ai/                 sugerencia de estadio (etapa posterior)
   test/                   pruebas unitarias y de pantallas
-crops/                    definiciones de cultivos en JSON (frambueso primero)
+app/assets/crops/         definiciones de cultivos en JSON (frambueso primero)
 supabase/                 migraciones SQL, reglas de acceso, funciones
 ml/                       entrenamiento de IA en Python (etapa posterior)
 docs/                     documentación

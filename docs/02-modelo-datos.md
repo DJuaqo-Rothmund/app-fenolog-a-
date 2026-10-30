@@ -44,7 +44,7 @@ erDiagram
 | `ai_model` | `crop_id`, `scale_id`, `version`, `file_path`, `labels` (lista de códigos de estadio), `input_size`, `rules` (JSON) | `rules` guarda reglas como «no retroceder de estadio» o máximo avance por semana. |
 
 Un cultivo completo se puede **exportar/importar como un archivo JSON**
-(`crops/rubus-idaeus.json`), así agregar arándano o cerezo es cargar un archivo, no programar.
+(`app/assets/crops/rubus-idaeus.json`), así agregar arándano o cerezo es cargar un archivo, no programar.
 
 ## Organización y trabajo de campo
 
@@ -62,11 +62,13 @@ Un cultivo completo se puede **exportar/importar como un archivo JSON**
 | `ai_suggestion` | `observation_id`, `photo_id`, `model_id`, `top` (JSON: códigos + confianza), `accepted_stage_id` | Guarda qué propuso la IA y qué eligió la persona: es oro para reentrenar. |
 | `audit_log` | `table`, `row_id`, `field`, `old_value`, `new_value`, `user_id`, `at` | Bitácora de cambios. |
 
-### Nombre de las fotos (nuevo formato)
+### Nombre de las fotos
 
-`<aaaammdd>_<cultivo>_<unidad>_<tipo><n>.jpg`, por ejemplo
-`20261102_RUB_HER-S3E2_D1.jpg` (fecha, código de cultivo, etiqueta corta de la unidad,
-`G`/`D`/`X` = general/detalle/extra y número correlativo). Se confirma en la etapa 1.
+`aaaammdd_<CULTIVO>_<UNIDAD>_<tipo><n>.jpg`, por ejemplo
+`20261102_FRB_HERITAGE-T2R3_D1.jpg`: fecha, código corto del cultivo, etiqueta de la
+unidad (mayúsculas, sin tildes ni espacios), `G`/`D`/`X` = general/detalle/extra y número
+correlativo, que no se reutiliza aunque se borre una foto. Implementado en
+`app/lib/domain/photo_naming.dart`.
 
 ## Cuenta maestra y consentimiento para la IA
 

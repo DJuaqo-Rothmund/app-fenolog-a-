@@ -10,8 +10,8 @@ rehacer nada.
 
 | Etapa | Contenido | Resultado |
 |---|---|---|
-| **0 · Fundaciones** | Proyecto Flutter, estructura de carpetas, análisis de código, pruebas, compilación automática en GitHub Actions (APK de prueba), licencia. | App vacía que compila y pasa pruebas. |
-| **1 · MVP sin conexión** | Ver detalle abajo. | App usable en terreno, solo en el teléfono. |
+| **0 · Fundaciones** | Proyecto Flutter, estructura de carpetas, análisis de código, pruebas, compilación automática en GitHub Actions (APK de prueba). | ✅ Hecha. |
+| **1 · MVP sin conexión** | Ver detalle abajo. | ✅ Primera versión lista para probar. |
 | **2 · Mediciones y datos** | Mediciones definidas por el usuario (planilla editable), parámetros por variedad, exportar a Excel, importar temporadas anteriores desde CSV, copia de seguridad local completa. | Datos completos y portables. |
 | **3 · Informes** | Línea de tiempo con curva fenológica, informes PDF (semanal, período, ficha por variedad, matriz comparativa), compartir por WhatsApp/correo. Luego comparación de tratamientos (ANOVA, LSD). | Informes para entregar. |
 | **4 · Nube y sincronización** | Usuarios (Google + correo), Supabase, sincronización entre teléfonos, cola de subida de fotos (solo Wi-Fi opcional), roles por organización. | Varios teléfonos trabajando juntos. |
@@ -22,7 +22,9 @@ rehacer nada.
 
 ## Etapa 1 · MVP sin conexión (detalle)
 
-1. **Cultivos y escala:** carga del frambueso desde `crops/rubus-idaeus.json` (escala BBCH
+Estado: implementada, con pruebas automáticas. Pendiente de prueba en terreno.
+
+1. **Cultivos y escala:** carga del frambueso desde `app/assets/crops/rubus-idaeus.json` (escala BBCH
    con textos redactados por nosotros), visor de escala por macroestadio con colores.
 2. **Variedades:** crear, editar, archivar.
 3. **Proyectos:** crear ensayo de variedades, ensayo de tratamientos × repeticiones o
@@ -36,4 +38,5 @@ rehacer nada.
 7. **Pruebas:** cálculo de semanas, completitud, nombres de fotos, orden de estadios,
    repositorios con base en memoria y pruebas de las pantallas principales.
 
-**Fuera del MVP:** informes, IA, nube, web, mapas, recordatorios.
+**Fuera del MVP:** informes, IA, nube, web, mapas, recordatorios, celebración animada al
+completar la semana (hoy es un mensaje con ícono).

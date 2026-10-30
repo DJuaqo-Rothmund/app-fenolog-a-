@@ -11,7 +11,7 @@ Mantengo casi toda tu propuesta, con **tres ajustes**:
 | Sincronización | (no definida) | **PowerSync** sobre Supabase (o motor propio, ver abajo) | La sincronización sin conexión entre varios teléfonos es lo más difícil del proyecto; conviene no inventarla. |
 | Nube | Supabase | **Supabase** ✔ | Postgres + usuarios + almacenamiento de fotos + reglas de acceso por fila (RLS). Se puede alojar en servidor propio en el futuro. |
 | Web | Flutter web, Next.js o SvelteKit | **Flutter web** (el mismo código) | Una sola base de código, mismas pantallas y reglas. Next.js solo si más adelante quieres un portal público o de marketing. |
-| IA en el teléfono | YOLO → TFLite/ONNX | **Clasificador ligero propio (MobileNetV3 / EfficientNet-Lite) → LiteRT (TFLite)**; detección con cajas más adelante | Ver «Cuidado con la licencia de YOLO». |
+| IA en el teléfono | YOLO → TFLite/ONNX | **Clasificador ligero propio (MobileNetV3 / EfficientNet-Lite) → LiteRT (TFLite)**; detección con cajas más adelante | Ver «IA: clasificador primero, detección después». |
 
 ### Por qué Flutter (y no React Native / Kotlin Multiplatform)
 
@@ -33,21 +33,16 @@ En ambos casos el modelo de datos es el mismo (identificadores UUID creados en e
 teléfono, marcas de tiempo, borrado lógico), así que se puede cambiar de A a B sin
 rehacer la app.
 
-### Cuidado con la licencia de YOLO
-
-Los modelos YOLO de Ultralytics (v5, v8, 11…) se distribuyen bajo **AGPL-3.0**: si los
-incluyes en una app que distribuyes o vendes, la AGPL te obligaría a publicar el código
-de tu app con la misma licencia, **salvo que compres la licencia empresarial** de
-Ultralytics. Como quieres una app propia y quizás venderla, recomiendo:
+### IA: clasificador primero, detección después
 
 1. **Primero, un clasificador** (foto → estadio fenológico, top-3 con confianza) con
-   arquitecturas de licencia permisiva (Apache-2.0/BSD): **MobileNetV3** o
-   **EfficientNet-Lite**, entrenadas con PyTorch o Keras y exportadas a TFLite (LiteRT)
-   para el teléfono y a ONNX para la web. Es lo que realmente se necesita para sugerir el
-   estadio.
+   arquitecturas ligeras de licencia permisiva: **MobileNetV3** o **EfficientNet-Lite**,
+   entrenadas con PyTorch o Keras y exportadas a TFLite (LiteRT) para el teléfono y a
+   ONNX para la web. Es lo que realmente se necesita para sugerir el estadio y funciona
+   bien en teléfonos de gama media.
 2. **Después, detección con cajas** (contar flores, frutos, brotes) con un detector de
-   licencia permisiva (p. ej. **YOLOX** o **RT-DETR** en implementaciones Apache-2.0) o
-   con la licencia comercial de Ultralytics si te conviene más.
+   licencia permisiva, p. ej. **YOLOX** o **RT-DETR** (Apache-2.0). Las versiones YOLO de
+   Ultralytics son AGPL-3.0, por eso no se usan dentro de la app.
 
 El entrenamiento se hace en un computador o en la nube (Python), **fuera de la app**. La
 app solo carga un archivo de modelo por cultivo y lo ejecuta en el teléfono.

@@ -1,0 +1,292 @@
+{
+  "format": 1,
+  "code": "rubus-idaeus",
+  "shortCode": "FRB",
+  "name": "Frambueso",
+  "scientificName": "Rubus idaeus",
+  "seasonStart": {
+    "month": 9,
+    "day": 7
+  },
+  "scales": [
+    {
+      "name": "BBCH frambueso",
+      "version": 1,
+      "default": true,
+      "macros": [
+        {
+          "code": "0",
+          "name": "Desarrollo de yemas"
+        },
+        {
+          "code": "1",
+          "name": "Desarrollo de hojas"
+        },
+        {
+          "code": "3",
+          "name": "Crecimiento de brotes y cañas"
+        },
+        {
+          "code": "5",
+          "name": "Aparición de botones florales"
+        },
+        {
+          "code": "6",
+          "name": "Floración"
+        },
+        {
+          "code": "7",
+          "name": "Desarrollo del fruto"
+        },
+        {
+          "code": "8",
+          "name": "Maduración del fruto"
+        },
+        {
+          "code": "9",
+          "name": "Senescencia y reposo"
+        }
+      ],
+      "stages": [
+        {
+          "code": "00",
+          "macro": "0",
+          "name": "Reposo invernal",
+          "description": "Yemas cerradas y cubiertas por escamas pardas.",
+          "color": "#6D4C41"
+        },
+        {
+          "code": "01",
+          "macro": "0",
+          "name": "Inicio de hinchazón",
+          "description": "Las yemas aumentan de tamaño; las escamas siguen cerradas.",
+          "color": "#7B5A45"
+        },
+        {
+          "code": "03",
+          "macro": "0",
+          "name": "Fin de hinchazón",
+          "description": "Las escamas se separan y dejan ver zonas verde claro.",
+          "color": "#8A6A48"
+        },
+        {
+          "code": "07",
+          "macro": "0",
+          "name": "Inicio de brotación",
+          "description": "Asoma tejido verde en el ápice de la yema.",
+          "color": "#8F7F4A"
+        },
+        {
+          "code": "09",
+          "macro": "0",
+          "name": "Puntas de hoja visibles",
+          "description": "Las puntas de las primeras hojas sobresalen unos milímetros de las escamas.",
+          "color": "#93934D"
+        },
+        {
+          "code": "10",
+          "macro": "1",
+          "name": "Hojas separándose",
+          "description": "Las primeras hojas se separan del brote, aún plegadas.",
+          "color": "#A5C46A"
+        },
+        {
+          "code": "11",
+          "macro": "1",
+          "name": "Primera hoja desplegada",
+          "description": "La primera hoja está completamente extendida.",
+          "color": "#94BB5B"
+        },
+        {
+          "code": "13",
+          "macro": "1",
+          "name": "Tres hojas desplegadas",
+          "description": "Tres hojas extendidas en el brote.",
+          "color": "#83B24D"
+        },
+        {
+          "code": "15",
+          "macro": "1",
+          "name": "Cinco hojas desplegadas",
+          "description": "Cinco hojas extendidas en el brote.",
+          "color": "#72A83F"
+        },
+        {
+          "code": "19",
+          "macro": "1",
+          "name": "Nueve o más hojas",
+          "description": "Nueve o más hojas extendidas en el brote.",
+          "color": "#5F9C33"
+        },
+        {
+          "code": "31",
+          "macro": "3",
+          "name": "Inicio de crecimiento",
+          "description": "Brotes laterales o cañas nuevas con cerca del 10 % de su largo final.",
+          "color": "#4E8F2E"
+        },
+        {
+          "code": "33",
+          "macro": "3",
+          "name": "Un tercio del largo",
+          "description": "Brotes o cañas con cerca del 30 % de su largo final.",
+          "color": "#44842A"
+        },
+        {
+          "code": "35",
+          "macro": "3",
+          "name": "Mitad del largo",
+          "description": "Brotes o cañas con cerca del 50 % de su largo final.",
+          "color": "#3A7926"
+        },
+        {
+          "code": "39",
+          "macro": "3",
+          "name": "Largo final",
+          "description": "Brotes o cañas con el 90 % o más de su largo final.",
+          "color": "#2F6B22"
+        },
+        {
+          "code": "51",
+          "macro": "5",
+          "name": "Botones agrupados visibles",
+          "description": "Se distinguen los botones florales en el extremo de los laterales, todavía juntos.",
+          "color": "#A9B83A"
+        },
+        {
+          "code": "55",
+          "macro": "5",
+          "name": "Botones separados",
+          "description": "Los botones se separan unos de otros sobre pedicelos cortos.",
+          "color": "#BCC13F"
+        },
+        {
+          "code": "57",
+          "macro": "5",
+          "name": "Sépalos abiertos",
+          "description": "Los sépalos se abren y se asoma el color de los pétalos.",
+          "color": "#CFC64A"
+        },
+        {
+          "code": "59",
+          "macro": "5",
+          "name": "Botón en globo",
+          "description": "La mayoría de los botones muestran los pétalos formando una esfera cerrada.",
+          "color": "#DCCB5A"
+        },
+        {
+          "code": "60",
+          "macro": "6",
+          "name": "Primeras flores",
+          "description": "Se abren flores aisladas.",
+          "color": "#F3E7C9"
+        },
+        {
+          "code": "61",
+          "macro": "6",
+          "name": "Inicio de floración",
+          "description": "Cerca del 10 % de las flores abiertas.",
+          "color": "#F6DCDD"
+        },
+        {
+          "code": "65",
+          "macro": "6",
+          "name": "Plena floración",
+          "description": "Cerca de la mitad de las flores abiertas; caen los primeros pétalos.",
+          "color": "#F2C2CA"
+        },
+        {
+          "code": "67",
+          "macro": "6",
+          "name": "Flores marchitándose",
+          "description": "La mayoría de los pétalos ya cayeron.",
+          "color": "#E8A6B4"
+        },
+        {
+          "code": "69",
+          "macro": "6",
+          "name": "Fin de floración",
+          "description": "Sin pétalos; los estilos se secan.",
+          "color": "#D98AA0"
+        },
+        {
+          "code": "71",
+          "macro": "7",
+          "name": "Cuaja",
+          "description": "El receptáculo crece y aparecen las primeras drupéolas verdes.",
+          "color": "#9CC07A"
+        },
+        {
+          "code": "73",
+          "macro": "7",
+          "name": "Fruto verde en crecimiento",
+          "description": "Frutos verdes cerca de la mitad de su tamaño final.",
+          "color": "#86B565"
+        },
+        {
+          "code": "79",
+          "macro": "7",
+          "name": "Fruto verde formado",
+          "description": "Frutos verdes con su tamaño final, todavía firmes.",
+          "color": "#6FA552"
+        },
+        {
+          "code": "81",
+          "macro": "8",
+          "name": "Inicio de maduración",
+          "description": "Los frutos pasan de verde a blanquecino o crema.",
+          "color": "#E7C0A8"
+        },
+        {
+          "code": "85",
+          "macro": "8",
+          "name": "Cambio de color",
+          "description": "Gran parte de los frutos del racimo se ven rosados.",
+          "color": "#E07A8C"
+        },
+        {
+          "code": "87",
+          "macro": "8",
+          "name": "Primera cosecha",
+          "description": "Primeros frutos con el color de la variedad, listos para cosechar.",
+          "color": "#C8324F"
+        },
+        {
+          "code": "89",
+          "macro": "8",
+          "name": "Plena cosecha",
+          "description": "La mayoría de los frutos maduros; se desprenden fácilmente del receptáculo.",
+          "color": "#9E1B3A"
+        },
+        {
+          "code": "91",
+          "macro": "9",
+          "name": "Crecimiento terminado",
+          "description": "Las cañas dejan de crecer; el follaje sigue verde.",
+          "color": "#8C8A4A"
+        },
+        {
+          "code": "93",
+          "macro": "9",
+          "name": "Inicio de caída de hojas",
+          "description": "Las hojas cambian de color y empiezan a caer.",
+          "color": "#A88A3E"
+        },
+        {
+          "code": "95",
+          "macro": "9",
+          "name": "Mitad de hojas caídas",
+          "description": "Cerca de la mitad de las hojas caídas o amarillas.",
+          "color": "#A3743A"
+        },
+        {
+          "code": "97",
+          "macro": "9",
+          "name": "Fin de caída de hojas",
+          "description": "Las plantas quedan sin hojas.",
+          "color": "#8C5E36"
+        }
+      ]
+    }
+  ]
+}
