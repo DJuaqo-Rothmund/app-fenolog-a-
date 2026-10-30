@@ -54,6 +54,7 @@ docs/                     Tecnología, arquitectura, modelo de datos, plan y dec
 | [docs/04-decisiones.md](docs/04-decisiones.md) | Decisiones tomadas |
 | [docs/05-desarrollo.md](docs/05-desarrollo.md) | Cómo compilar, probar y agregar cultivos |
 | [docs/06-servidor.md](docs/06-servidor.md) | Servidor propio: cómo funciona e instalación |
+| [docs/07-modelo-ia.md](docs/07-modelo-ia.md) | Diseño del modelo de IA (etapas 6 y 7) |
 
 ## Licencia
 
