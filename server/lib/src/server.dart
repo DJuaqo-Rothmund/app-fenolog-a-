@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:postgres/postgres.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
 
 import 'database.dart';
 import 'passwords.dart';
@@ -21,9 +22,12 @@ typedef User = ({String id, String email, String name, String role});
 /// - `PUT/GET /photos/<id>` → archivos de foto.
 /// - `/users` → equipo (solo el dueño).
 class SyncServer {
-  SyncServer(this.db, {required this.photosDir});
+  SyncServer(this.db, {required this.photosDir, this.webDir});
   final Pool<void> db;
   final Directory photosDir;
+
+  /// Versión web compilada de la app (`flutter build web`); se entrega en `/`.
+  final Directory? webDir;
 
   static const maxPullRows = 1000;
   static const maxPhotoBytes = 25 * 1024 * 1024;
@@ -51,7 +55,11 @@ class SyncServer {
       ..get('/users', _auth(_listUsers, owner: true))
       ..post('/users', _auth(_addUser, owner: true))
       ..patch('/users/<id>', (Request req, String id) => _auth((r, u) => _updateUser(r, u, id), owner: true)(req));
-    return const Pipeline().addMiddleware(_errors).addHandler(r.call);
+    final web = webDir;
+    final Handler app = web == null
+        ? r.call
+        : Cascade().add(r.call).add(createStaticHandler(web.path, defaultDocument: 'index.html')).handler;
+    return const Pipeline().addMiddleware(_cors).addMiddleware(_errors).addHandler(app);
   }
 
   // --- Utilidades -----------------------------------------------------------
@@ -60,6 +68,19 @@ class SyncServer {
       Response(status, body: jsonEncode(body), headers: {'content-type': 'application/json; charset=utf-8'});
 
   static Response _error(int status, String message) => _json({'error': message}, status);
+
+  /// Permite usar la API desde otra dirección (p. ej. la web en desarrollo).
+  /// La sesión va en el encabezado Authorization, no en cookies.
+  static Middleware get _cors =>
+      (inner) => (req) async {
+        const headers = {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'GET, POST, PUT, PATCH, OPTIONS',
+          'access-control-allow-headers': 'authorization, content-type',
+        };
+        if (req.method == 'OPTIONS') return Response.ok(null, headers: headers);
+        return (await inner(req)).change(headers: headers);
+      };
 
   static Middleware get _errors =>
       (inner) => (req) async {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,7 +34,8 @@ class _LoginForm extends ConsumerStatefulWidget {
 
 class _LoginFormState extends ConsumerState<_LoginForm> {
   final _form = GlobalKey<FormState>();
-  final _server = TextEditingController();
+  // En el navegador la app la entrega el mismo servidor.
+  final _server = TextEditingController(text: kIsWeb ? Uri.base.origin : '');
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
@@ -56,7 +58,12 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
     try {
       await ref
           .read(syncEngineProvider)
-          .login(serverUrl: _server.text, email: _email.text, password: _password.text, device: 'Android');
+          .login(
+            serverUrl: _server.text,
+            email: _email.text,
+            password: _password.text,
+            device: kIsWeb ? 'Navegador' : 'Android',
+          );
       ref.read(syncControllerProvider.notifier).start();
     } on SyncException catch (e) {
       setState(() => _error = e.message);
@@ -197,7 +204,7 @@ class _Connected extends ConsumerWidget {
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Cerrar sesión'),
-          subtitle: const Text('Los datos quedan en el teléfono.'),
+          subtitle: Text(kIsWeb ? 'Los datos quedan en este navegador.' : 'Los datos quedan en el teléfono.'),
           onTap: () async {
             if (pending > 0 &&
                 !await confirm(

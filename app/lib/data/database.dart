@@ -205,7 +205,12 @@ class SyncMeta extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openDefault());
 
-  static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
+  /// En el teléfono: archivo SQLite. En el navegador: SQLite en WebAssembly
+  /// (archivos `web/sqlite3.wasm` y `web/drift_worker.js`).
+  static QueryExecutor _openDefault() => driftDatabase(
+    name: 'frambitacora',
+    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker.js')),
+  );
 
   @override
   int get schemaVersion => 3;

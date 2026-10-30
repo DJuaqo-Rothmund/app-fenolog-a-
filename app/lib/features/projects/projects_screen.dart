@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,7 +63,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'varieties', child: Text('Variedades')),
               PopupMenuItem(value: 'scale', child: Text('Escala fenológica')),
-              PopupMenuItem(value: 'backup', child: Text('Respaldo y Google Drive')),
+              if (!kIsWeb) PopupMenuItem(value: 'backup', child: Text('Respaldo y Google Drive')),
             ],
           ),
         ],

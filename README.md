@@ -14,7 +14,8 @@ en un archivo JSON, sin cambiar código).
 | 2 · Mediciones, Excel/CSV, respaldo y Google Drive | ✅ |
 | 3 · Informes (curva, matriz, PDF, ANOVA y LSD) | ✅ |
 | 4 · Servidor propio y sincronización entre teléfonos | ✅ (falta instalar el servidor) |
-| 5 en adelante (web, IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
+| 5 · Versión web (la entrega el mismo servidor) | ✅ |
+| 6 en adelante (IA) | Pendiente — ver [plan](docs/03-plan-etapas.md) |
 
 ## Descargar el APK de prueba
 
@@ -31,7 +32,7 @@ configurar una llave de firma propia (ver [docs/05-desarrollo.md](docs/05-desarr
 ## Estructura
 
 ```
-app/                      Proyecto Flutter (Android)
+app/                      Proyecto Flutter (Android y web)
 server/                   Servidor de sincronización (Dart + PostgreSQL, Docker)
   lib/domain/             Reglas puras: semanas, nombre de fotos, definición de cultivos
   lib/data/               Base de datos local (SQLite/Drift) y repositorios

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
@@ -127,13 +128,19 @@ class SyncEngine {
     if (!readOnly) {
       onStatus?.call('Enviando cambios…');
       pushed = await _push(client);
-      onStatus?.call('Subiendo fotos…');
-      photosUp = await _uploadPhotos(client, onStatus);
+      if (!kIsWeb) {
+        onStatus?.call('Subiendo fotos…');
+        photosUp = await _uploadPhotos(client, onStatus);
+      }
     }
     onStatus?.call('Recibiendo cambios…');
     final pulled = await _pull(client);
-    onStatus?.call('Descargando fotos…');
-    final photosDown = await _downloadPhotos(client, onStatus);
+    // En el navegador las fotos se muestran directo desde el servidor.
+    var photosDown = 0;
+    if (!kIsWeb) {
+      onStatus?.call('Descargando fotos…');
+      photosDown = await _downloadPhotos(client, onStatus);
+    }
     await _set(_kLastSync, DateTime.now().toIso8601String());
     return SyncReport(pushed: pushed, pulled: pulled, photosUp: photosUp, photosDown: photosDown, readOnly: readOnly);
   }

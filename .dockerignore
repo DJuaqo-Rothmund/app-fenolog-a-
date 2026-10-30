@@ -1,0 +1,6 @@
+**/.dart_tool/
+**/build/
+app/android/
+.git/
+server/.env
+server/fotos/

@@ -46,18 +46,28 @@ disco alcanza para muchos años.
 
 2. Apuntar un subdominio (p. ej. `frambitacora.midominio.cl`) a la IP del servidor
    (registro DNS tipo A).
-3. Copiar la carpeta `server/` al servidor, crear `.env` a partir de `.env.ejemplo` y
-   completar `DOMAIN`, `DB_PASSWORD`, `OWNER_EMAIL` y `OWNER_PASSWORD`.
+3. Descargar el repositorio en el servidor (la imagen se arma con la app web y el
+   servidor), entrar a `server/`, crear `.env` a partir de `.env.ejemplo` y completar
+   `DOMAIN`, `DB_PASSWORD`, `OWNER_EMAIL` y `OWNER_PASSWORD`:
+
+   ```bash
+   git clone https://github.com/DJuaqo-Rothmund/app-fenolog-a-.git frambitacora
+   cd frambitacora/server && cp .env.ejemplo .env && nano .env
+   ```
+
 4. Levantar todo (servidor, PostgreSQL y HTTPS automático):
 
    ```bash
    docker compose up -d
    ```
 
-5. En la app: nube de la pantalla de inicio → dirección `https://frambitacora.midominio.cl`,
+5. La **versión web** queda en la misma dirección: abrir `https://frambitacora.midominio.cl`
+   en el navegador del computador e iniciar sesión con la nube (la dirección ya viene
+   escrita).
+6. En la app: nube de la pantalla de inicio → dirección `https://frambitacora.midominio.cl`,
    el correo y la contraseña del dueño → **Conectar**. La primera sincronización envía
    todo lo que ya estaba en el teléfono.
-6. En **Equipo**, agregar a cada persona; la app muestra la contraseña inicial para
+7. En **Equipo**, agregar a cada persona; la app muestra la contraseña inicial para
    enviársela.
 
 ### Respaldos del servidor
@@ -69,6 +79,21 @@ docker run --rm -v server_fotos:/f -v "$PWD":/out alpine tar czf /out/fotos_$(da
 
 Conviene programarlo cada noche (cron) y copiar los archivos fuera del servidor (p. ej. a
 Google Drive).
+
+## Versión web (etapa 5)
+
+Es la misma app compilada para el navegador. Guarda sus datos en el navegador (SQLite en
+WebAssembly sobre IndexedDB) y se sincroniza con el servidor igual que un teléfono.
+
+- Sirve para **consultar, editar en la oficina, sacar informes PDF, Excel y CSV, e
+  importar CSV**. Los archivos se descargan en vez de «compartir».
+- Las **fotos se ven** directo desde el servidor, pero se toman desde el teléfono.
+- No tiene respaldo local ni subida a Google Drive (eso vive en el teléfono; el servidor
+  ya guarda todo).
+- Cada ejecución de GitHub Actions publica `frambitacora-web-N` con la web compilada; la
+  imagen Docker del servidor la incluye y la entrega en `/`.
+
+Para probarla en el computador sin servidor: `cd app && flutter run -d chrome`.
 
 ## Desarrollo
 

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +13,7 @@ import '../../domain/photo_naming.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../photo_image.dart';
 import '../measurements/measurement_field.dart';
 import '../scale/scale_screen.dart';
 import 'device_services.dart';
@@ -351,8 +352,11 @@ class _PhotoSection extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           children: [
-            _AddButton(icon: Icons.photo_camera, label: 'Cámara', onTap: onCamera),
-            _AddButton(icon: Icons.photo_library, label: 'Galería', onTap: onGallery),
+            // En el navegador las fotos se ven, pero se toman desde el teléfono.
+            if (!kIsWeb) ...[
+              _AddButton(icon: Icons.photo_camera, label: 'Cámara', onTap: onCamera),
+              _AddButton(icon: Icons.photo_library, label: 'Galería', onTap: onGallery),
+            ],
             for (final p in photos)
               Padding(
                 padding: const EdgeInsets.all(4),
@@ -361,14 +365,7 @@ class _PhotoSection extends StatelessWidget {
                   onLongPress: () => onDelete(p),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      File(p.localPath),
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.cover,
-                      cacheWidth: 256,
-                      errorBuilder: (_, _, _) => const SizedBox(width: 96, height: 96, child: Icon(Icons.broken_image)),
-                    ),
+                    child: PhotoImage(photo: p, width: 96, height: 96, fit: BoxFit.cover, cacheWidth: 256),
                   ),
                 ),
               ),
@@ -410,6 +407,9 @@ class _PhotoViewer extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.black,
     appBar: AppBar(title: Text(photo.fileName, style: const TextStyle(fontSize: 14))),
-    body: InteractiveViewer(maxScale: 6, child: Center(child: Image.file(File(photo.localPath)))),
+    body: InteractiveViewer(
+      maxScale: 6,
+      child: Center(child: PhotoImage(photo: photo)),
+    ),
   );
 }

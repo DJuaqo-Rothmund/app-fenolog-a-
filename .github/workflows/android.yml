@@ -75,6 +75,15 @@ jobs:
       - name: Compilar APK
         run: flutter build apk --release --build-number=${{ github.run_number }}
 
+      - name: Compilar web
+        run: flutter build web --release --no-web-resources-cdn --no-wasm-dry-run
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frambitacora-web-${{ github.run_number }}
+          path: app/build/web
+          retention-days: 30
+
       - uses: actions/upload-artifact@v4
         with:
           name: frambitacora-apk-${{ github.run_number }}
@@ -109,4 +118,5 @@ jobs:
       - name: Pruebas (con PostgreSQL)
         run: dart test
       - name: Imagen Docker
-        run: docker build -t frambitacora-server .
+        working-directory: .
+        run: docker build -f server/Dockerfile -t frambitacora-server .

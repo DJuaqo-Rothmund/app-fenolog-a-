@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,7 +17,7 @@ Future<void> main() async {
 
   // Un respaldo elegido en «Restaurar» se instala antes de abrir la base.
   final backup = BackupService(getApplicationDocumentsDirectory);
-  final restored = await backup.applyPendingRestore();
+  final restored = !kIsWeb && await backup.applyPendingRestore();
 
   final db = AppDatabase();
   if (restored) await backup.relocatePhotos(db);

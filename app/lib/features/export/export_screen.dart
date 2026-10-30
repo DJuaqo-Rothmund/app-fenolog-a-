@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -63,17 +65,21 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   }
 
   Future<void> _shareExcel() => _run('Preparando Excel…', () async {
-    final file = await _writeExcel(await _data());
-    await ref.read(fileSharerProvider).share([file], subject: 'FramBitácora · ${widget.project.name}');
+    await ref
+        .read(fileSharerProvider)
+        .shareBytes(
+          '$_baseName.xlsx',
+          buildSeasonWorkbook(await _data()),
+          subject: 'FramBitácora · ${widget.project.name}',
+        );
   });
 
   Future<void> _shareCsv() => _run('Preparando CSV…', () async {
-    final sharer = ref.read(fileSharerProvider);
-    final dir = await sharer.tempDir();
     // Con marca BOM para que Excel reconozca las tildes.
-    final file = await File('${dir.path}/${_baseName}_registros.csv')
-        .writeAsString('﻿${toCsv(recordsTable(await _data()))}');
-    await sharer.share([file], subject: 'FramBitácora · ${widget.project.name}');
+    final csv = '\uFEFF${toCsv(recordsTable(await _data()))}';
+    await ref
+        .read(fileSharerProvider)
+        .shareBytes('${_baseName}_registros.csv', utf8.encode(csv), subject: 'FramBitácora · ${widget.project.name}');
   });
 
   Future<void> _uploadDrive() => _run('Conectando con Google Drive…', () async {
@@ -112,15 +118,15 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   });
 
   Future<void> _importCsv() async {
-    final path = await ref.read(fileSharerProvider).pickFile(['csv', 'txt']);
-    if (path == null) return;
+    final bytes = await ref.read(fileSharerProvider).pickBytes(['csv', 'txt']);
+    if (bytes == null) return;
     await _run('Importando…', () async {
       final summary = await SeasonCsvImporter(
         ref.read(databaseProvider),
         ref.read(projectRepositoryProvider),
         ref.read(samplingRepositoryProvider),
         ref.read(measurementRepositoryProvider),
-      ).import(widget.season.id, await File(path).readAsString());
+      ).import(widget.season.id, utf8.decode(bytes, allowMalformed: true));
       if (!mounted) return;
       await _message(
         'Importación',
@@ -162,17 +168,19 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
             enabled: !_busy,
             onTap: _shareCsv,
           ),
-          const _Header('Google Drive personal'),
-          ListTile(
-            leading: const Icon(Icons.add_to_drive),
-            title: const Text('Subir a mi Google Drive'),
-            subtitle: const Text(
-              'Excel y fotos ordenadas por semana en la carpeta «FramBitácora». '
-              'Las fotos ya subidas no se repiten. Usa internet: mejor con Wi-Fi.',
+          if (!kIsWeb) ...[
+            const _Header('Google Drive personal'),
+            ListTile(
+              leading: const Icon(Icons.add_to_drive),
+              title: const Text('Subir a mi Google Drive'),
+              subtitle: const Text(
+                'Excel y fotos ordenadas por semana en la carpeta «FramBitácora». '
+                'Las fotos ya subidas no se repiten. Usa internet: mejor con Wi-Fi.',
+              ),
+              enabled: !_busy,
+              onTap: _uploadDrive,
             ),
-            enabled: !_busy,
-            onTap: _uploadDrive,
-          ),
+          ],
           const _Header('Importar'),
           ListTile(
             leading: const Icon(Icons.upload_file),

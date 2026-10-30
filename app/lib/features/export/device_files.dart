@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -16,10 +17,26 @@ class FileSharer {
   Future<void> share(List<File> files, {String? subject}) =>
       SharePlus.instance.share(ShareParams(files: [for (final f in files) XFile(f.path)], subject: subject));
 
-  /// Devuelve la ruta del archivo elegido o nulo si se cancela.
+  /// En el teléfono abre «Compartir»; en el navegador descarga el archivo.
+  Future<void> shareBytes(String fileName, List<int> bytes, {String? subject}) async {
+    if (kIsWeb) {
+      await FilePicker.saveFile(fileName: fileName, bytes: Uint8List.fromList(bytes), mimeType: mimeTypeFor(fileName));
+      return;
+    }
+    final file = await File('${(await tempDir()).path}/$fileName').writeAsBytes(bytes);
+    await share([file], subject: subject);
+  }
+
+  /// Ruta del archivo elegido (solo en el teléfono) o nulo si se cancela.
   Future<String?> pickFile(List<String> extensions) async {
     final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: extensions);
     return picked.firstOrNull?.path;
+  }
+
+  /// Contenido del archivo elegido (teléfono y navegador) o nulo si se cancela.
+  Future<Uint8List?> pickBytes(List<String> extensions) async {
+    final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: extensions);
+    return picked.firstOrNull?.readAsBytes();
   }
 
   /// Carpeta temporal para preparar archivos antes de compartirlos.

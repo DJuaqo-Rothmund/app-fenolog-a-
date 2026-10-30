@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,9 +47,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     setState(() => _busy = true);
     try {
       final reports = PdfReports(await loadReportFonts());
-      final sharer = ref.read(fileSharerProvider);
-      final file = await File('${(await sharer.tempDir()).path}/$name.pdf').writeAsBytes(await build(reports));
-      await sharer.share([file], subject: 'FramBitácora · ${widget.project.name}');
+      await ref
+          .read(fileSharerProvider)
+          .shareBytes('$name.pdf', await build(reports), subject: 'FramBitácora · ${widget.project.name}');
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo crear el PDF: $e')));
     } finally {
@@ -93,7 +92,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     if (!mounted || choice == null) return;
     switch (choice) {
       case 'week':
-        await _sharePdf('${_base}_S${widget.week}', (r) => r.weekly(d, widget.week));
+        // En el navegador las fotos no están como archivo local.
+        await _sharePdf('${_base}_S${widget.week}', (r) => r.weekly(d, widget.week, withPhotos: !kIsWeb));
       case 'season':
         await _sharePdf('${_base}_temporada', (r) => r.season(d, groupBy: _groupBy));
       case 'variety':
