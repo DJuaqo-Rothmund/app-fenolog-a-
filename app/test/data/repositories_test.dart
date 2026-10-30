@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frambitacora/data/catalog_repository.dart';
 import 'package:frambitacora/data/crop_importer.dart';
 import 'package:frambitacora/data/database.dart';
+import 'package:frambitacora/data/measurement_repository.dart';
 import 'package:frambitacora/data/photo_store.dart';
 import 'package:frambitacora/data/project_repository.dart';
 import 'package:frambitacora/data/sampling_repository.dart';
 import 'package:frambitacora/domain/crop_definition.dart';
+import 'package:frambitacora/domain/measurement.dart';
 import 'package:frambitacora/domain/photo_naming.dart';
 import 'package:frambitacora/domain/project_kind.dart';
 
@@ -19,6 +21,7 @@ void main() {
   late CatalogRepository catalog;
   late ProjectRepository projects;
   late SamplingRepository sampling;
+  late MeasurementRepository measurements;
   late Crop crop;
   late PhenoScale scale;
 
@@ -28,6 +31,7 @@ void main() {
     catalog = CatalogRepository(db);
     projects = ProjectRepository(db);
     sampling = SamplingRepository(db, PhotoStore(baseDir: () async => tmp));
+    measurements = MeasurementRepository(db);
     crop = (await catalog.watchCrops().first).single;
     scale = await catalog.defaultScale(crop.id);
   });
@@ -237,6 +241,99 @@ void main() {
       await sampling.setWeekNotSampled(p.seasonId, 5, false);
       expect(await sampling.watchWeekNotSampled(p.seasonId, 5).first, isFalse);
       expect(await db.select(db.weekStatuses).get(), hasLength(1));
+    });
+  });
+
+  group('temporadas', () {
+    test('una temporada nueva pasa a ser la actual y la anterior se conserva', () async {
+      final p = await newProject();
+      final id = await projects.createSeason(
+        projectId: p.projectId,
+        name: '2027-28',
+        week1Start: DateTime.utc(2027, 9, 6),
+      );
+      expect((await projects.watchCurrentSeason(p.projectId).first)!.id, id);
+      expect((await projects.watchSeasons(p.projectId).first).map((s) => s.name), ['2027-28', '2026-27']);
+    });
+  });
+
+  group('mediciones', () {
+    test('valor semanal: crear, cambiar y borrar', () async {
+      final p = await newProject();
+      final unit = await projects.createUnit(projectId: p.projectId, label: 'A');
+      final obs = await sampling.ensureObservation(p.seasonId, unit, 4);
+      final def = await measurements.createDef(
+        projectId: p.projectId,
+        name: 'Largo de brote',
+        kind: MeasurementKind.number,
+        scope: MeasurementScope.observation,
+        unit: 'cm',
+      );
+
+      await measurements.setObservationValue(obs, def, (number: 12.5, text: null));
+      expect((await measurements.watchObservationValues(obs).first)[def]!.valueNum, 12.5);
+
+      await measurements.setObservationValue(obs, def, (number: 14, text: null));
+      final values = await measurements.watchObservationValues(obs).first;
+      expect(values[def]!.valueNum, 14);
+      expect(await db.select(db.measurementValues).get(), hasLength(1), reason: 'se actualiza, no se duplica');
+
+      await measurements.setObservationValue(obs, def, null);
+      expect(await measurements.watchObservationValues(obs).first, isEmpty);
+    });
+
+    test('parámetros por variedad y temporada', () async {
+      final p = await newProject();
+      final heritage = await catalog.createVariety(cropId: crop.id, name: 'Heritage');
+      final tulameen = await catalog.createVariety(cropId: crop.id, name: 'Tulameen');
+      final def = await measurements.createDef(
+        projectId: p.projectId,
+        name: 'Rendimiento',
+        kind: MeasurementKind.number,
+        scope: MeasurementScope.varietySeason,
+        unit: 'kg/ha',
+      );
+      await measurements.setVarietyValue(
+        seasonId: p.seasonId,
+        varietyId: heritage,
+        defId: def,
+        value: (number: 12000, text: null),
+      );
+      await measurements.setVarietyValue(
+        seasonId: p.seasonId,
+        varietyId: tulameen,
+        defId: def,
+        value: (number: 9000, text: null),
+      );
+      await measurements.setVarietyValue(
+        seasonId: p.seasonId,
+        varietyId: heritage,
+        defId: def,
+        value: (number: 12500, text: null),
+      );
+      final values = await measurements.watchVarietyValues(p.seasonId).first;
+      expect(values, hasLength(2));
+      expect(values.firstWhere((v) => v.varietyId == heritage).valueNum, 12500);
+    });
+
+    test('las definiciones se separan por alcance y se pueden eliminar', () async {
+      final p = await newProject();
+      final a = await measurements.createDef(
+        projectId: p.projectId,
+        name: 'Flores',
+        kind: MeasurementKind.integer,
+        scope: MeasurementScope.observation,
+      );
+      await measurements.createDef(
+        projectId: p.projectId,
+        name: 'Cañas',
+        kind: MeasurementKind.integer,
+        scope: MeasurementScope.varietySeason,
+      );
+      expect((await measurements.defs(p.projectId, scope: MeasurementScope.observation)).single.name, 'Flores');
+      expect(await measurements.defs(p.projectId), hasLength(2));
+      await measurements.deleteDef(a);
+      expect((await measurements.defs(p.projectId)).single.name, 'Cañas');
     });
   });
 }

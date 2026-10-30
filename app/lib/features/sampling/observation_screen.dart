@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database.dart';
+import '../../data/measurement_repository.dart';
 import '../../data/sampling_repository.dart';
 import '../../domain/completeness.dart';
+import '../../domain/measurement.dart';
 import '../../domain/photo_naming.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../measurements/measurement_field.dart';
 import '../scale/scale_screen.dart';
 import 'device_services.dart';
 
@@ -42,11 +45,13 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
   // Se guarda al iniciar porque las notas pendientes se escriben en dispose(),
   // cuando `ref` ya no se puede usar.
   late final SamplingRepository _repo;
+  late final MeasurementRepository _measurements;
 
   @override
   void initState() {
     super.initState();
     _repo = ref.read(samplingRepositoryProvider);
+    _measurements = ref.read(measurementRepositoryProvider);
   }
 
   ({String seasonId, String unitId, int week}) get _key =>
@@ -143,6 +148,9 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
     final observation = ref.watch(observationProvider(_key));
     final stages = ref.watch(stagesProvider(widget.project.scaleId)).value ?? const <PhenoStage>[];
     final weekStart = seasonWeekStart(widget.week, widget.season.week1Start);
+    final defs =
+        ref.watch(measurementDefsProvider((projectId: widget.project.id, scope: MeasurementScope.observation))).value ??
+        const <MeasurementDef>[];
 
     return Scaffold(
       appBar: AppBar(
@@ -164,6 +172,9 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
         final photos = obs == null ? const AsyncValue<List<Photo>>.data([]) : ref.watch(photosProvider(obs.id));
         final photoList = photos.value ?? const <Photo>[];
         final complete = isObservationComplete(hasStage: stage != null, photoCount: photoList.length);
+        final values = obs == null
+            ? const <String, MeasurementValue>{}
+            : ref.watch(observationValuesProvider(obs.id)).value ?? const <String, MeasurementValue>{};
 
         return Stack(
           children: [
@@ -181,6 +192,28 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                     onTap: () => _pickStage(stage?.id),
                   ),
                 ),
+                if (defs.isNotEmpty)
+                  _Section(
+                    title: 'Mediciones',
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          for (final d in defs)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: MeasurementField(
+                                key: ValueKey(d.id),
+                                def: d,
+                                value: values[d.id],
+                                onSave: (value) async =>
+                                    _measurements.setObservationValue(await _observationId(), d.id, value),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                 for (final kind in PhotoKind.values)
                   _PhotoSection(
                     kind: kind,

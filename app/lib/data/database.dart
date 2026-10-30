@@ -132,6 +132,37 @@ class Photos extends Table with SyncColumns {
   TextColumn get uploadStatus => text().withDefault(const Constant('pending'))();
 }
 
+/// Medición definida por el usuario para un proyecto: semanal (por registro) o
+/// por variedad y temporada (parámetros como rendimiento o número de cañas).
+class MeasurementDefs extends Table with SyncColumns {
+  TextColumn get projectId => text().references(Projects, #id)();
+  TextColumn get name => text()();
+
+  /// Nombre de [MeasurementKind].
+  TextColumn get kind => text()();
+
+  /// Nombre de [MeasurementScope].
+  TextColumn get scope => text()();
+  TextColumn get unit => text().withDefault(const Constant(''))();
+  RealColumn get minValue => real().nullable()();
+  RealColumn get maxValue => real().nullable()();
+
+  /// Opciones separadas por salto de línea (solo para `choice`).
+  TextColumn get choices => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+}
+
+/// Valor de una medición: de un registro semanal ([observationId]) o de una
+/// variedad en una temporada ([seasonId] + [varietyId]).
+class MeasurementValues extends Table with SyncColumns {
+  TextColumn get defId => text().references(MeasurementDefs, #id)();
+  TextColumn get observationId => text().nullable().references(Observations, #id)();
+  TextColumn get seasonId => text().nullable().references(Seasons, #id)();
+  TextColumn get varietyId => text().nullable().references(Varieties, #id)();
+  RealColumn get valueNum => real().nullable()();
+  TextColumn get valueText => text().nullable()();
+}
+
 @DriftDatabase(
   tables: [
     Crops,
@@ -145,6 +176,8 @@ class Photos extends Table with SyncColumns {
     WeekStatuses,
     Observations,
     Photos,
+    MeasurementDefs,
+    MeasurementValues,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -153,10 +186,16 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(measurementDefs);
+        await m.createTable(measurementValues);
+      }
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },

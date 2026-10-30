@@ -8,6 +8,8 @@ import '../../domain/project_kind.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../measurements/measurement_defs_screen.dart';
+import '../measurements/variety_params_screen.dart';
 import '../sampling/observation_screen.dart';
 import 'unit_form.dart';
 
@@ -22,17 +24,23 @@ class ProjectScreen extends ConsumerStatefulWidget {
 
 class _ProjectScreenState extends ConsumerState<ProjectScreen> {
   int? _week;
+  String? _seasonId;
 
   int _currentWeek(Season s) => seasonWeekFor(ref.read(todayProvider), s.week1Start).clamp(1, 1 << 30);
 
-  Future<void> _editSeason(Season season) async {
-    final name = TextEditingController(text: season.name);
-    var week1 = season.week1Start;
+  /// Pide nombre y semana 1 de una temporada. Devuelve nulo si se cancela.
+  Future<({String name, DateTime week1})?> _seasonDialog(
+    String title,
+    String initialName,
+    DateTime initialWeek1,
+  ) async {
+    final name = TextEditingController(text: initialName);
+    var week1 = initialWeek1;
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialog) => AlertDialog(
-          title: const Text('Temporada'),
+          title: Text(title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -65,11 +73,60 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
         ),
       ),
     );
-    if (ok == true && name.text.trim().isNotEmpty) {
-      await ref.read(projectRepositoryProvider).updateSeason(season.id, name: name.text, week1Start: week1);
-    }
+    final text = name.text.trim();
     name.dispose();
+    return ok == true && text.isNotEmpty ? (name: text, week1: week1) : null;
   }
+
+  Future<void> _editSeason(Season season) async {
+    final r = await _seasonDialog('Temporada', season.name, season.week1Start);
+    if (r != null) await ref.read(projectRepositoryProvider).updateSeason(season.id, name: r.name, week1Start: r.week1);
+  }
+
+  Future<void> _newSeason(Project project) async {
+    final crop = await ref.read(cropProvider(project.cropId).future);
+    final week1 = defaultWeek1Start(ref.read(todayProvider), crop.seasonStartMonth, crop.seasonStartDay);
+    if (!mounted) return;
+    final r = await _seasonDialog('Nueva temporada', defaultSeasonName(week1), week1);
+    if (r == null) return;
+    final id = await ref
+        .read(projectRepositoryProvider)
+        .createSeason(projectId: project.id, name: r.name, week1Start: r.week1);
+    setState(() {
+      _seasonId = id;
+      _week = null;
+    });
+  }
+
+  Future<void> _pickSeason(List<Season> seasons, Season current) async {
+    final picked = await showDialog<Season>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Temporada'),
+        children: [
+          for (final s in seasons)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, s),
+              child: Row(
+                children: [
+                  Icon(s.id == current.id ? Icons.radio_button_checked : Icons.radio_button_unchecked, size: 20),
+                  const SizedBox(width: 12),
+                  Text(s.name),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (picked != null && picked.id != current.id) {
+      setState(() {
+        _seasonId = picked.id;
+        _week = null;
+      });
+    }
+  }
+
+  void _open(Widget screen) => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => screen));
 
   Future<void> _unitActions(Project project, Unit unit) async {
     final action = await showModalBottomSheet<String>(
@@ -109,7 +166,9 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
   @override
   Widget build(BuildContext context) {
     final project = ref.watch(projectProvider(widget.projectId));
-    final season = ref.watch(currentSeasonProvider(widget.projectId));
+    final seasons = ref.watch(seasonsProvider(widget.projectId));
+    final seasonList = seasons.value ?? const <Season>[];
+    final season = seasonList.where((s) => s.id == _seasonId).firstOrNull ?? seasonList.firstOrNull;
 
     return asyncView(project, (p) {
       return Scaffold(
@@ -118,12 +177,30 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
           actions: [
             PopupMenuButton<String>(
               onSelected: (v) async {
-                final s = season.value;
-                if (v == 'season' && s != null) await _editSeason(s);
-                if (v == 'archive') await ref.read(projectRepositoryProvider).setProjectArchived(p.id, !p.archived);
+                final s = season;
+                switch (v) {
+                  case 'measurements':
+                    _open(MeasurementDefsScreen(projectId: p.id));
+                  case 'params' when s != null:
+                    _open(VarietyParamsScreen(project: p, season: s));
+                  case 'pick-season' when s != null:
+                    await _pickSeason(seasonList, s);
+                  case 'new-season':
+                    await _newSeason(p);
+                  case 'season' when s != null:
+                    await _editSeason(s);
+                  case 'archive':
+                    await ref.read(projectRepositoryProvider).setProjectArchived(p.id, !p.archived);
+                }
               },
               itemBuilder: (_) => [
+                const PopupMenuItem(value: 'measurements', child: Text('Mediciones')),
+                const PopupMenuItem(value: 'params', child: Text('Parámetros por variedad')),
+                const PopupMenuDivider(),
+                if (seasonList.length > 1) const PopupMenuItem(value: 'pick-season', child: Text('Cambiar temporada')),
+                const PopupMenuItem(value: 'new-season', child: Text('Nueva temporada')),
                 const PopupMenuItem(value: 'season', child: Text('Editar temporada')),
+                const PopupMenuDivider(),
                 PopupMenuItem(value: 'archive', child: Text(p.archived ? 'Desarchivar proyecto' : 'Archivar proyecto')),
               ],
             ),
@@ -134,7 +211,8 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
           icon: const Icon(Icons.add),
           label: const Text('Unidad'),
         ),
-        body: asyncView(season, (s) {
+        body: asyncView(seasons, (_) {
+          final s = season;
           if (s == null) return const EmptyState(icon: Icons.event_busy, message: 'Este proyecto no tiene temporada.');
           final week = _week ?? _currentWeek(s);
           return _WeekView(

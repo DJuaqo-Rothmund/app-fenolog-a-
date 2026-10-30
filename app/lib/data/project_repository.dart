@@ -53,6 +53,20 @@ class ProjectRepository {
             ..limit(1))
           .watchSingleOrNull();
 
+  /// Todas las temporadas del proyecto, la más reciente primero.
+  Stream<List<Season>> watchSeasons(String projectId) =>
+      (db.select(db.seasons)
+            ..where((s) => s.projectId.equals(projectId) & s.deletedAt.isNull())
+            ..orderBy([(s) => OrderingTerm(expression: s.week1Start, mode: OrderingMode.desc)]))
+          .watch();
+
+  Future<String> createSeason({required String projectId, required String name, required DateTime week1Start}) async {
+    final row = await db
+        .into(db.seasons)
+        .insertReturning(SeasonsCompanion.insert(projectId: projectId, name: name.trim(), week1Start: week1Start));
+    return row.id;
+  }
+
   Future<void> updateSeason(String id, {required String name, required DateTime week1Start}) =>
       (db.update(db.seasons)..where((s) => s.id.equals(id))).write(
         SeasonsCompanion(name: Value(name.trim()), week1Start: Value(week1Start), updatedAt: Value(DateTime.now())),
