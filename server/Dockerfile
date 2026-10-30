@@ -3,7 +3,12 @@
 #   docker build -f server/Dockerfile -t frambitacora-server .
 
 # 1. Versión web de la app.
-FROM ghcr.io/cirruslabs/flutter:3.47.9 AS web
+FROM debian:bookworm-slim AS web
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 -b 3.47.9 https://github.com/flutter/flutter.git /flutter
+ENV PATH=/flutter/bin:$PATH
+RUN flutter precache --web
 WORKDIR /src
 COPY server/pubspec.* server/
 COPY app/ app/
