@@ -34,3 +34,19 @@ String unitLabel({
           ' · Sector ${t(sector).isEmpty ? '?' : t(sector)}';
   }
 }
+
+/// Código del testigo en los ensayos de tratamientos.
+const controlCode = 'T0';
+
+/// Códigos de los tratamientos: `T0` (si hay testigo) y luego `T1`…`Tn`.
+List<String> treatmentCodes(int count, {required bool hasControl}) => [
+  if (hasControl) controlCode,
+  for (var i = 1; i <= count; i++) 'T$i',
+];
+
+/// Todas las combinaciones tratamiento × repetición, ordenadas por repetición
+/// (bloque) y luego por tratamiento, como se recorren en el campo.
+List<({String treatment, int replicate})> treatmentGrid(List<String> treatments, int replicates) => [
+  for (var r = 1; r <= replicates; r++)
+    for (final t in treatments) (treatment: t, replicate: r),
+];

@@ -63,6 +63,10 @@ final unitsProvider = StreamProvider.family<List<Unit>, String>(
   (ref, projectId) => ref.watch(projectRepositoryProvider).watchUnits(projectId),
 );
 
+final treatmentsProvider = StreamProvider.family<List<Treatment>, String>(
+  (ref, projectId) => ref.watch(projectRepositoryProvider).watchTreatments(projectId),
+);
+
 typedef WeekKey = ({String projectId, String seasonId, int week});
 
 final weekRowsProvider = StreamProvider.family<List<UnitWeekRow>, WeekKey>(

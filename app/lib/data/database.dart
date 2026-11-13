@@ -70,6 +70,19 @@ class Projects extends Table with SyncColumns {
   TextColumn get kind => text()();
   TextColumn get name => text()();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
+
+  /// Ensayo de tratamientos: cantidad de repeticiones (bloques).
+  IntColumn get replicates => integer().nullable()();
+}
+
+/// Tratamientos de un ensayo de tratamientos (T0 = testigo, T1, T2…), con su
+/// descripción (producto, dosis…). Las unidades guardan el código en `treatment`.
+class Treatments extends Table with SyncColumns {
+  TextColumn get projectId => text().references(Projects, #id)();
+  TextColumn get code => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  BoolColumn get isControl => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 }
 
 class Seasons extends Table with SyncColumns {
@@ -145,6 +158,7 @@ class Photos extends Table with SyncColumns {
     PhenoStages,
     Varieties,
     Projects,
+    Treatments,
     Seasons,
     Units,
     WeekStatuses,
@@ -158,7 +172,7 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -166,6 +180,7 @@ class AppDatabase extends _$AppDatabase {
       // Las migraciones usan SQL directo (no las clases de tabla) para que sigan
       // siendo válidas cuando el esquema cambie en versiones futuras.
       if (from < 2) await _photoPathsToRelative();
+      if (from < 3) await _addTreatments();
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -186,4 +201,59 @@ class AppDatabase extends _$AppDatabase {
       }
     }
   }
+
+  /// Versión 3: tabla de tratamientos y repeticiones del ensayo. Los ensayos de
+  /// tratamientos que ya existían reciben sus tratamientos desde sus unidades.
+  Future<void> _addTreatments() async {
+    await customStatement('''
+CREATE TABLE IF NOT EXISTS "treatments" (
+  "id" TEXT NOT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL,
+  "deleted_at" TEXT NULL,
+  "project_id" TEXT NOT NULL REFERENCES projects (id),
+  "code" TEXT NOT NULL,
+  "description" TEXT NOT NULL DEFAULT '',
+  "is_control" INTEGER NOT NULL DEFAULT 0 CHECK ("is_control" IN (0, 1)),
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY ("id")
+)''');
+    final cols = await customSelect('PRAGMA table_info(projects)').get();
+    if (!cols.any((c) => c.read<String>('name') == 'replicates')) {
+      await customStatement('ALTER TABLE projects ADD COLUMN "replicates" INTEGER NULL');
+    }
+
+    final now = DateTime.now().toIso8601String();
+    final projects = await customSelect("SELECT id FROM projects WHERE kind = 'treatmentTrial'").get();
+    for (final p in projects) {
+      final projectId = p.read<String>('id');
+      final codes = await customSelect(
+        '''
+SELECT treatment, MIN(sort_order) AS first FROM units
+WHERE project_id = ? AND deleted_at IS NULL AND treatment IS NOT NULL
+GROUP BY treatment ORDER BY first''',
+        variables: [Variable.withString(projectId)],
+      ).get();
+      var order = 0;
+      for (final c in codes) {
+        final code = c.read<String>('treatment');
+        await customStatement(
+          'INSERT INTO treatments (id, created_at, updated_at, project_id, code, is_control, sort_order) '
+          'VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [newId(), now, now, projectId, code, isControlCode(code) ? 1 : 0, order++],
+        );
+      }
+      await customStatement(
+        'UPDATE projects SET replicates = (SELECT MAX(replicate) FROM units WHERE project_id = ?1 AND deleted_at IS NULL) '
+        'WHERE id = ?1',
+        [projectId],
+      );
+    }
+  }
+}
+
+/// `T0` o un nombre que diga «testigo» se considera el testigo del ensayo.
+bool isControlCode(String code) {
+  final c = code.trim().toLowerCase();
+  return c == 't0' || c.contains('testigo');
 }

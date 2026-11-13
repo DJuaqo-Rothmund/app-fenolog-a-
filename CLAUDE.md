@@ -48,8 +48,12 @@ decisiones, guía de desarrollo).
   de avance, registro con estado, fotos (cámara/galería), notas y GPS.
 - Pendiente de **prueba en terreno** por el dueño.
 - **Etapa 2, avance 2.1 hecho:** copia de seguridad completa (`.zip`) y restauración
-  (menú ⋮ → Copia de seguridad), esquema v2 con rutas de fotos relativas. 50 pruebas pasan.
-  Detalle de avances en `docs/03-plan-etapas.md`.
+  (Configuración → Copia de seguridad), esquema v2 con rutas de fotos relativas.
+- **Avance 2.1b hecho:** pantalla **Configuración** (engranaje) con variedades, escala,
+  proyectos y copia; configuración por proyecto; ensayo de variedades con «Agregar
+  variedades»; ensayo de tratamientos con diseño (n.º tratamientos, repeticiones, testigo
+  T0) editable y descripción por tratamiento (esquema v3); botones de foto pequeños a la
+  derecha de cada cajita. 59 pruebas pasan. Detalle en `docs/03-plan-etapas.md`.
 
 ## Pendientes y preguntas abiertas
 
@@ -92,5 +96,8 @@ decisiones, guía de desarrollo).
   `main.dart` y deben reemplazarse en las pruebas de pantallas.
 - Trabajo pesado de archivos en `Isolate.run` desde funciones de nivel superior (una
   función anónima dentro de un método arrastra la base abierta y falla).
-- Esquema actual: versión 2 (tabla de migraciones en `docs/05-desarrollo.md`).
+- Esquema actual: versión 3 (tabla de migraciones en `docs/05-desarrollo.md`). Las
+  migraciones usan SQL directo y toleran columnas ya existentes.
+- Diálogos con campos de texto: el diálogo debe ser un `StatefulWidget` dueño de sus
+  `TextEditingController` (liberarlos tras `showDialog` rompe la animación de cierre).
 - Antes de subir: `flutter analyze`, `flutter test` y formato, todo en verde.

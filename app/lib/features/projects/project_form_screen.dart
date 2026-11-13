@@ -6,6 +6,8 @@ import '../../domain/project_kind.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../settings/project_settings_screen.dart';
+import 'treatment_design.dart';
 
 /// Crear un proyecto con su primera temporada.
 class ProjectFormScreen extends ConsumerStatefulWidget {
@@ -22,6 +24,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
   ProjectKind _kind = ProjectKind.varietyTrial;
   Crop? _crop;
   DateTime? _week1;
+  TreatmentDesign _design = const TreatmentDesign();
   bool _saving = false;
 
   @override
@@ -55,7 +58,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
     if (!_form.currentState!.validate() || _crop == null) return;
     setState(() => _saving = true);
     final scale = await ref.read(catalogRepositoryProvider).defaultScale(_crop!.id);
-    await ref
+    final id = await ref
         .read(projectRepositoryProvider)
         .createProject(
           cropId: _crop!.id,
@@ -65,7 +68,23 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
           seasonName: _season.text,
           week1Start: _week1!,
         );
-    if (mounted) Navigator.pop(context);
+    if (_kind == ProjectKind.treatmentTrial) {
+      await ref
+          .read(projectRepositoryProvider)
+          .configureTreatmentTrial(
+            id,
+            treatments: _design.treatments,
+            replicates: _design.replicates,
+            hasControl: _design.hasControl,
+          );
+    }
+    // Siguiente paso natural: configurar las unidades (variedades, tratamientos…).
+    if (mounted) {
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(builder: (_) => ProjectSettingsScreen(projectId: id, justCreated: true)),
+      );
+    }
   }
 
   @override
@@ -102,6 +121,14 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                   ],
                 ),
               ),
+              if (_kind == ProjectKind.treatmentTrial)
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 8, 12),
+                    child: TreatmentDesignFields(value: _design, onChanged: (d) => setState(() => _design = d)),
+                  ),
+                ),
               const SizedBox(height: 8),
               DropdownButtonFormField<Crop>(
                 initialValue: _crop,

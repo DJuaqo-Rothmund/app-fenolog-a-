@@ -109,3 +109,71 @@ Future<bool> confirm(
   );
   return ok ?? false;
 }
+
+/// Título de sección en pantallas de configuración.
+class SectionHeader extends StatelessWidget {
+  const SectionHeader(this.text, {super.key});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+    ),
+  );
+}
+
+/// Pide un texto (no vacío). Devuelve `null` si se cancela.
+Future<String?> promptText(
+  BuildContext context, {
+  required String title,
+  String initial = '',
+  String? hint,
+  bool allowEmpty = false,
+}) async {
+  final text = await showDialog<String>(
+    context: context,
+    builder: (_) => _PromptDialog(title: title, initial: initial, hint: hint),
+  );
+  if (text == null) return null;
+  return text.trim().isEmpty && !allowEmpty ? null : text.trim();
+}
+
+class _PromptDialog extends StatefulWidget {
+  const _PromptDialog({required this.title, required this.initial, this.hint});
+  final String title;
+  final String initial;
+  final String? hint;
+
+  @override
+  State<_PromptDialog> createState() => _PromptDialogState();
+}
+
+class _PromptDialogState extends State<_PromptDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      minLines: 1,
+      maxLines: 4,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(hintText: widget.hint),
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+      FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: const Text('Guardar')),
+    ],
+  );
+}

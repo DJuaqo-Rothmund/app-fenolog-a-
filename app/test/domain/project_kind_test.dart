@@ -21,4 +21,15 @@ void main() {
     expect(const WeekProgress(complete: 3, total: 4).fraction, 0.75);
     expect(const WeekProgress(complete: 4, total: 4).isDone, isTrue);
   });
+
+  test('códigos de tratamientos con y sin testigo', () {
+    expect(treatmentCodes(3, hasControl: true), ['T0', 'T1', 'T2', 'T3']);
+    expect(treatmentCodes(2, hasControl: false), ['T1', 'T2']);
+  });
+
+  test('tratamientos × repeticiones, ordenados por bloque', () {
+    final grid = treatmentGrid(['T1', 'T2'], 2);
+    expect(grid.map((c) => '${c.treatment} R${c.replicate}'), ['T1 R1', 'T2 R1', 'T1 R2', 'T2 R2']);
+    expect(treatmentGrid(['T1'], 0), isEmpty);
+  });
 }

@@ -35,12 +35,14 @@ y publica el APK como *artifact*.
 | `lib/data/*_repository.dart` | Lectura y escritura de datos (catálogo, proyectos, registros y fotos). |
 | `lib/data/photo_store.dart` | Copia las fotos a la carpeta de la app con su nombre uniforme. La base guarda la ruta **relativa** (`fotos/<temporada>/<archivo>`). |
 | `lib/data/backup_service.dart` | Copia de seguridad completa (`.zip` con `manifest.json`, la base y `fotos/`) y restauración. |
-| `lib/features/backup/` | Pantalla «Copia de seguridad» (menú ⋮ de la pantalla de inicio). |
+| `lib/features/backup/` | Pantalla «Copia de seguridad» (desde Configuración). |
+| `lib/features/settings/` | **Configuración** (engranaje en la pantalla de inicio): variedades, escala, proyectos, copia de seguridad; y configuración de cada proyecto (nombre, temporada, diseño, tratamientos, unidades, archivo). |
+| `lib/features/projects/treatment_design.dart` | Diseño del ensayo de tratamientos: n.º de tratamientos, repeticiones y testigo T0. |
 | `lib/features/...` | Pantallas. |
 
 ## Copia de seguridad
 
-Menú ⋮ → **Copia de seguridad**.
+Configuración (engranaje) → **Copia de seguridad**.
 
 - **Crear copia y compartir:** arma un `.zip` con todos los datos y fotos y abre el menú
   «Compartir» de Android para guardarlo en Drive, enviarlo por correo, etc. Con ≈ 500 fotos
@@ -59,9 +61,22 @@ Menú ⋮ → **Copia de seguridad**.
 |---|---|
 | 1 | Esquema inicial (etapa 1). |
 | 2 | Las fotos guardan su ruta relativa en vez de la ruta completa del teléfono. |
+| 3 | Tabla `treatments` (código, descripción, testigo, orden) y `projects.replicates`. Los ensayos de tratamientos existentes reciben sus tratamientos desde sus unidades. |
 
 Las migraciones están en `AppDatabase.migration` y usan SQL directo para no depender del
 esquema más nuevo.
+
+## Configuración de proyectos
+
+- **Ensayo de variedades:** «Agregar variedades» muestra el catálogo con casillas (y botón
+  «Nueva»); crea una unidad por variedad y no repite las que ya están.
+- **Ensayo de tratamientos:** al crearlo se elige n.º de tratamientos, repeticiones y si
+  tiene testigo (T0). Se crean los tratamientos `T0…Tn` y una unidad por tratamiento y
+  repetición (`T1 R2`), en orden de campo (bloque por bloque). En Configuración se cambia
+  el diseño (se agregan las unidades que faltan y se quitan las que sobran, conservando
+  sus registros) y se escribe la descripción de cada tratamiento (producto, dosis…), que
+  también aparece en la lista semanal.
+- **Predio:** unidades una a una (equipo de riego + sector).
 
 ## Agregar un cultivo
 

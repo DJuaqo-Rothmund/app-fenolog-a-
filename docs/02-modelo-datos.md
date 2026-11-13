@@ -54,6 +54,7 @@ Un cultivo completo se puede **exportar/importar como un archivo JSON**
 | `membership` | `organization_id`, `user_id`, `role` (`owner`, `editor`, `viewer`) | |
 | `project` | `organization_id`, `crop_id`, `scale_id`, `kind` (`variety_trial`, `treatment_trial`, `farm`), `name`, `archived` | Reemplaza «ensayo» y «predio» con un solo concepto. Cada proyecto tiene sus datos separados. |
 | `season` | `project_id`, `name` (p. ej. «2026-27»), `week1_start` (fecha) | La semana 1 es configurable por temporada. |
+| `treatment` | `project_id`, `code` (`T0`, `T1`…), `description` (producto, dosis…), `is_control`, `sort_order` | Tratamientos de un ensayo de tratamientos. `project.replicates` guarda el n.º de repeticiones. |
 | `unit` | `project_id`, `variety_id`, `label`, `treatment`, `replicate`, `sector`, `irrigation_group`, `sort_order`, `lat`, `lon` | Una sola tabla sirve para variedad, tratamiento × repetición y sector de predio. |
 | `week_status` | `season_id`, `week_number`, `not_sampled` (sí/no), `note` | Para marcar semanas no muestreadas. |
 | `observation` | `season_id`, `unit_id`, `week_number`, `stage_id`, `stage_source` (`manual`, `ai_accepted`, `ai_corrected`), `notes`, `observed_at`, `lat`, `lon`, `location_source` (`gps`, `map`, `photo`) | Única por (`season_id`, `unit_id`, `week_number`). Completa = tiene estadio y al menos una foto. |

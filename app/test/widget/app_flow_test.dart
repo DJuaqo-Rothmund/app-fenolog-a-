@@ -8,6 +8,8 @@ import 'package:frambitacora/app.dart';
 import 'package:frambitacora/data/database.dart';
 import 'package:frambitacora/data/photo_store.dart';
 import 'package:frambitacora/domain/project_kind.dart';
+import 'package:frambitacora/features/projects/project_form_screen.dart';
+import 'package:frambitacora/features/settings/project_settings_screen.dart';
 import 'package:frambitacora/providers.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -72,7 +74,9 @@ void main() {
     await tester.tap(find.text('Crear proyecto'));
     await settle(tester);
 
-    expect(find.text('Ensayo Los Ríos'), findsOneWidget);
+    // Tras crear, se abre su configuración para agregar unidades.
+    expect(find.text('Ensayo Los Ríos'), findsWidgets);
+    expect(find.text('Unidades (0)'), findsOneWidget);
     final saved = await tester.runAsync(() => db.select(db.projects).getSingle());
     expect(saved!.kind, ProjectKind.farm.name);
 
@@ -114,6 +118,155 @@ void main() {
     await settle(tester);
     expect(find.text('Semana 7'), findsOneWidget);
     expect(find.text('Ir a la semana actual'), findsOneWidget);
+
+    await finish(tester);
+  });
+
+  /// Lista de la configuración del proyecto.
+  Finder settingsList() =>
+      find.descendant(of: find.byType(ProjectSettingsScreen), matching: find.byType(Scrollable)).first;
+
+  /// Lista del formulario de proyecto (Configuración queda debajo, también con lista).
+  Finder formList() => find.descendant(of: find.byType(ProjectFormScreen), matching: find.byType(Scrollable)).first;
+
+  testWidgets('desde Configuración se arma un ensayo de variedades completo', (tester) async {
+    await tester.pumpWidget(app());
+    await settle(tester);
+
+    await tester.tap(find.byTooltip('Configuración'));
+    await settle(tester);
+    expect(find.text('Variedades'), findsOneWidget);
+    expect(find.text('Copia de seguridad'), findsOneWidget);
+
+    // Nuevo proyecto (ensayo de variedades, el tipo por defecto).
+    await tester.tap(find.text('Nuevo proyecto'));
+    await settle(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nombre'), 'Nuevas variedades');
+    await tester.scrollUntilVisible(find.text('Crear proyecto'), 200, scrollable: formList());
+    await tester.drag(formList(), const Offset(0, -100));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Crear proyecto'));
+    await settle(tester);
+
+    // Queda en la configuración del proyecto, lista para agregar variedades.
+    expect(find.text('Unidades (0)'), findsOneWidget);
+    await tester.tap(find.text('Agregar variedades'));
+    await settle(tester);
+    await tester.tap(find.text('Nueva'));
+    await settle(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nombre'), 'Heritage');
+    await tester.tap(find.text('Guardar'));
+    await settle(tester);
+    await tester.tap(find.text('Agregar 1'));
+    await settle(tester);
+    expect(find.text('Unidades (1)'), findsOneWidget);
+    expect(find.text('Heritage'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Listo, ir al proyecto'),
+      200,
+      scrollable: find.descendant(of: find.byType(ProjectSettingsScreen), matching: find.byType(Scrollable)).first,
+    );
+    await tester.tap(find.text('Listo, ir al proyecto'));
+    await settle(tester);
+    expect(find.text('Semana 8'), findsOneWidget);
+    expect(find.text('Heritage'), findsOneWidget);
+
+    await finish(tester);
+  });
+
+  testWidgets('el registro muestra cajitas de fotos con botones pequeños y notas', (tester) async {
+    await tester.runAsync(() async {
+      final crop = await db.select(db.crops).getSingle();
+      final scale = await db.select(db.phenoScales).getSingle();
+      await db
+          .into(db.projects)
+          .insert(
+            ProjectsCompanion.insert(
+              id: const Value('p1'),
+              cropId: crop.id,
+              scaleId: scale.id,
+              kind: ProjectKind.varietyTrial.name,
+              name: 'Ensayo',
+            ),
+          );
+      await db
+          .into(db.seasons)
+          .insert(SeasonsCompanion.insert(projectId: 'p1', name: '2026-27', week1Start: DateTime.utc(2026, 9, 7)));
+      await db.into(db.units).insert(UnitsCompanion.insert(projectId: 'p1', label: 'Heritage'));
+    });
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.text('Ensayo'));
+    await settle(tester);
+    await tester.tap(find.text('Heritage'));
+    await settle(tester);
+
+    expect(find.byTooltip('Tomar foto'), findsNWidgets(3));
+    expect(find.byTooltip('Elegir de la galería'), findsNWidgets(3));
+    expect(find.text('Sin fotos'), findsNWidgets(3));
+    await tester.scrollUntilVisible(find.text('Notas'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.widgetWithText(TextField, 'Observaciones técnicas'), findsOneWidget);
+
+    await finish(tester);
+  });
+
+  testWidgets('ensayo de tratamientos: diseño al crearlo, descripción y cambios en Configuración', (tester) async {
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.text('Proyecto'));
+    await settle(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nombre'), 'Dosis de nitrógeno');
+    await tester.tap(find.text('Ensayo de tratamientos'));
+    await tester.pump();
+
+    // Diseño: 2 tratamientos + testigo × 3 repeticiones.
+    await tester.scrollUntilVisible(find.byTooltip('menos tratamientos'), 100, scrollable: formList());
+    await tester.drag(formList(), const Offset(0, -150));
+    await tester.pumpAndSettle();
+    for (final tip in ['menos tratamientos', 'menos tratamientos', 'menos repeticiones']) {
+      await tester.tap(find.byTooltip(tip));
+      await tester.pump();
+    }
+    expect(find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('Crear proyecto'), 200, scrollable: formList());
+    await tester.drag(formList(), const Offset(0, -100));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Crear proyecto'));
+    await settle(tester);
+
+    expect(find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'), findsOneWidget);
+    expect(find.text('Testigo'), findsWidgets);
+
+    // Describir T1.
+    await tester.scrollUntilVisible(find.text('T1'), 150, scrollable: settingsList());
+    await tester.tap(find.text('T1'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField), '2 L/ha producto A');
+    await tester.tap(find.text('Guardar'));
+    await settle(tester);
+    expect(find.text('2 L/ha producto A'), findsWidgets);
+    await tester.scrollUntilVisible(find.text('Unidades (9)'), 200, scrollable: settingsList());
+    await tester.scrollUntilVisible(
+      find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'),
+      -200,
+      scrollable: settingsList(),
+    );
+
+    // Cambiar el diseño: sin testigo, con la confirmación de que se quitan unidades.
+    await tester.tap(find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'));
+    await settle(tester);
+    await tester.tap(find.text('¿Tiene testigo (T0)?'));
+    await tester.pump();
+    await tester.tap(find.text('Aplicar'));
+    await settle(tester);
+    expect(find.text('Quitar unidades'), findsOneWidget);
+    await tester.tap(find.text('Aplicar'));
+    await settle(tester);
+    expect(find.text('T1…T2 × 3 repeticiones = 6 unidades'), findsOneWidget);
+    final units = await tester.runAsync(() => db.select(db.units).get());
+    expect(units!.where((u) => u.deletedAt == null).map((u) => u.treatment).toSet(), {'T1', 'T2'});
 
     await finish(tester);
   });

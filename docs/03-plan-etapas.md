@@ -46,6 +46,7 @@ completar la semana (hoy es un mensaje con ícono).
 | Avance | Contenido | Estado |
 |---|---|---|
 | 2.1 | Copia de seguridad completa (datos + fotos) y restauración; rutas de fotos relativas (esquema v2) | ✅ Hecho |
+| 2.1b | Configuración central (variedades, escala, proyectos, copia); ensayos de tratamientos con diseño (tratamientos × repeticiones, testigo T0) y descripción por tratamiento (esquema v3); botones de foto compactos | ✅ Hecho |
 | 2.2 | Definir mediciones (número, entero, texto, opción, imagen) por cultivo o proyecto | Pendiente |
 | 2.3 | Mediciones en el registro y planilla semanal editable; borrar medición o semana | Pendiente |
 | 2.4 | Parámetros por variedad y temporada | Pendiente |

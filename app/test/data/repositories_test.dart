@@ -125,6 +125,48 @@ void main() {
       expect((await projects.watchUnits(p.projectId).first).map((u) => u.label), ['Zeta', 'Alfa']);
     });
 
+    test('agregar variedades al ensayo no repite las que ya están', () async {
+      final p = await newProject();
+      final her = await catalog.createVariety(cropId: crop.id, name: 'Heritage');
+      await catalog.createVariety(cropId: crop.id, name: 'Tulameen');
+      final all = await catalog.watchVarieties(crop.id).first;
+
+      await projects.addVarietyUnits(p.projectId, all.where((v) => v.id == her).toList());
+      expect(await projects.addVarietyUnits(p.projectId, all), 1, reason: 'Heritage ya estaba');
+      final units = await projects.watchUnits(p.projectId).first;
+      expect(units.map((u) => u.label), ['Heritage', 'Tulameen']);
+      expect(units.first.varietyId, her);
+    });
+
+    test('ensayo de tratamientos: crear, describir y modificar el diseño', () async {
+      final p = await newProject();
+      var r = await projects.configureTreatmentTrial(p.projectId, treatments: 2, replicates: 3, hasControl: true);
+      expect(r.added, 9, reason: '(T0 + T1 + T2) × 3 repeticiones');
+      var units = await projects.watchUnits(p.projectId).first;
+      expect(units.take(4).map((u) => u.label), ['T0 R1', 'T1 R1', 'T2 R1', 'T0 R2']);
+      var treatments = await projects.watchTreatments(p.projectId).first;
+      expect(treatments.map((t) => t.code), ['T0', 'T1', 'T2']);
+      expect(treatments.first.isControl, isTrue);
+      expect(treatments.first.description, 'Testigo');
+
+      await projects.setTreatmentDescription(treatments[1].id, ' 2 L/ha producto A ');
+
+      // Un tratamiento y una repetición más: solo se agregan las que faltan.
+      r = await projects.configureTreatmentTrial(p.projectId, treatments: 3, replicates: 4, hasControl: true);
+      expect(r, (added: 7, removed: 0));
+      units = await projects.watchUnits(p.projectId).first;
+      expect(units, hasLength(16));
+      expect(units.take(4).map((u) => u.label), ['T0 R1', 'T1 R1', 'T2 R1', 'T3 R1'], reason: 'orden de campo');
+      treatments = await projects.watchTreatments(p.projectId).first;
+      expect(treatments[1].description, '2 L/ha producto A', reason: 'la descripción se conserva');
+
+      // Sin testigo y con 2 repeticiones: se quitan T0 y las repeticiones 3 y 4.
+      r = await projects.configureTreatmentTrial(p.projectId, treatments: 3, replicates: 2, hasControl: false);
+      expect(r, (added: 0, removed: 10));
+      expect((await projects.watchTreatments(p.projectId).first).map((t) => t.code), ['T1', 'T2', 'T3']);
+      expect((await projects.watchProject(p.projectId).first).replicates, 2);
+    });
+
     test('eliminar una unidad la oculta', () async {
       final p = await newProject();
       final u = await projects.createUnit(projectId: p.projectId, label: 'A');

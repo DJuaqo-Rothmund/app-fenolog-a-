@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database.dart';
 import '../../domain/project_kind.dart';
 import '../../providers.dart';
-import '../backup/backup_screen.dart';
 import '../common.dart';
-import '../scale/scale_screen.dart';
-import '../varieties/varieties_screen.dart';
+import '../settings/settings_screen.dart';
 import 'project_form_screen.dart';
 import 'project_screen.dart';
 
@@ -21,12 +19,6 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   bool _grid = false;
-
-  Future<void> _openCatalog(Widget Function(Crop crop) screen) async {
-    final crop = await pickCrop(context, ref);
-    if (crop == null || !mounted) return;
-    await Navigator.push(context, MaterialPageRoute<void>(builder: (_) => screen(crop)));
-  }
 
   void _openProject(Project p) =>
       Navigator.push(context, MaterialPageRoute<void>(builder: (_) => ProjectScreen(projectId: p.id)));
@@ -43,18 +35,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             icon: Icon(_grid ? Icons.view_list : Icons.grid_view),
             onPressed: () => setState(() => _grid = !_grid),
           ),
-          PopupMenuButton<String>(
-            onSelected: (v) => switch (v) {
-              'varieties' => _openCatalog((c) => VarietiesScreen(cropId: c.id, cropName: c.name)),
-              'backup' => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const BackupScreen())),
-              _ => _openCatalog((c) => ScaleScreen(cropId: c.id, cropName: c.name)),
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'varieties', child: Text('Variedades')),
-              PopupMenuItem(value: 'scale', child: Text('Escala fenológica')),
-              PopupMenuDivider(),
-              PopupMenuItem(value: 'backup', child: Text('Copia de seguridad')),
-            ],
+          IconButton(
+            tooltip: 'Configuración',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
           ),
         ],
       ),

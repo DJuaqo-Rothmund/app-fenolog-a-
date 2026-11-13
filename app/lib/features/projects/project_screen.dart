@@ -9,6 +9,7 @@ import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
 import '../sampling/observation_screen.dart';
+import '../settings/project_settings_screen.dart';
 import 'unit_form.dart';
 
 /// Un proyecto: navegación por semanas y lista de unidades con su estado.
@@ -24,52 +25,6 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
   int? _week;
 
   int _currentWeek(Season s) => seasonWeekFor(ref.read(todayProvider), s.week1Start).clamp(1, 1 << 30);
-
-  Future<void> _editSeason(Season season) async {
-    final name = TextEditingController(text: season.name);
-    var week1 = season.week1Start;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialog) => AlertDialog(
-          title: const Text('Temporada'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: name,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Semana 1 desde'),
-                subtitle: Text(longDate.format(week1)),
-                trailing: const Icon(Icons.edit_calendar),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: week1,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) setDialog(() => week1 = mondayOf(picked));
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
-          ],
-        ),
-      ),
-    );
-    if (ok == true && name.text.trim().isNotEmpty) {
-      await ref.read(projectRepositoryProvider).updateSeason(season.id, name: name.text, week1Start: week1);
-    }
-    name.dispose();
-  }
 
   Future<void> _unitActions(Project project, Unit unit) async {
     final action = await showModalBottomSheet<String>(
@@ -116,16 +71,13 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
         appBar: AppBar(
           title: Text(p.name),
           actions: [
-            PopupMenuButton<String>(
-              onSelected: (v) async {
-                final s = season.value;
-                if (v == 'season' && s != null) await _editSeason(s);
-                if (v == 'archive') await ref.read(projectRepositoryProvider).setProjectArchived(p.id, !p.archived);
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'season', child: Text('Editar temporada')),
-                PopupMenuItem(value: 'archive', child: Text(p.archived ? 'Desarchivar proyecto' : 'Archivar proyecto')),
-              ],
+            IconButton(
+              tooltip: 'Configurar proyecto',
+              icon: const Icon(Icons.tune),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => ProjectSettingsScreen(projectId: p.id)),
+              ),
             ),
           ],
         ),
@@ -170,6 +122,11 @@ class _WeekView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rows = ref.watch(weekRowsProvider((projectId: project.id, seasonId: season.id, week: week)));
+    // Descripción de cada tratamiento (dosis, producto…) para mostrarla en terreno.
+    final treatmentInfo = {
+      for (final t in ref.watch(treatmentsProvider(project.id)).value ?? const <Treatment>[])
+        if (t.description.isNotEmpty) t.code: t.description,
+    };
     final notSampled = ref.watch(weekNotSampledProvider((seasonId: season.id, week: week))).value ?? false;
     final start = seasonWeekStart(week, season.week1Start);
     final iso = isoWeek(start);
@@ -250,6 +207,7 @@ class _WeekView extends ConsumerWidget {
               itemCount: list.length,
               itemBuilder: (_, i) => _UnitTile(
                 row: list[i],
+                info: treatmentInfo[list[i].unit.treatment],
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
@@ -304,8 +262,11 @@ class _Progress extends StatelessWidget {
 }
 
 class _UnitTile extends StatelessWidget {
-  const _UnitTile({required this.row, required this.onTap, required this.onLongPress});
+  const _UnitTile({required this.row, required this.onTap, required this.onLongPress, this.info});
   final UnitWeekRow row;
+
+  /// Descripción del tratamiento, si tiene.
+  final String? info;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -315,7 +276,7 @@ class _UnitTile extends StatelessWidget {
     final photos = row.photoCount == 1 ? '1 foto' : '${row.photoCount} fotos';
     return ListTile(
       leading: StageBadge(code: row.stageCode, color: row.stageColor),
-      title: Text(row.unit.label),
+      title: Text(info == null ? row.unit.label : '${row.unit.label} · $info', overflow: TextOverflow.ellipsis),
       subtitle: Text('$stage · $photos'),
       trailing: row.isComplete
           ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, semanticLabel: 'Completo')

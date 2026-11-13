@@ -310,63 +310,80 @@ class _PhotoSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final photoStore = ref.watch(photoStoreProvider);
+    final scheme = Theme.of(context).colorScheme;
     return _Section(
-      title: _title,
-      child: SizedBox(
-        height: 104,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+      title: photos.isEmpty ? _title : '$_title · ${photos.length}',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
           children: [
-            _AddButton(icon: Icons.photo_camera, label: 'Cámara', onTap: onCamera),
-            _AddButton(icon: Icons.photo_library, label: 'Galería', onTap: onGallery),
-            for (final p in photos)
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => _PhotoViewer(photo: p))),
-                  onLongPress: () => onDelete(p),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      photoStore.file(p.localPath),
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.cover,
-                      cacheWidth: 256,
-                      errorBuilder: (_, _, _) => const SizedBox(width: 96, height: 96, child: Icon(Icons.broken_image)),
-                    ),
-                  ),
+            // Cajita con las miniaturas de este tipo de foto.
+            Expanded(
+              child: Container(
+                height: 88,
+                decoration: BoxDecoration(
+                  border: Border.all(color: scheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: photos.isEmpty
+                    ? Center(
+                        child: Text('Sin fotos', style: TextStyle(color: scheme.outline)),
+                      )
+                    : ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(4),
+                        children: [
+                          for (final p in photos)
+                            Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(builder: (_) => _PhotoViewer(photo: p)),
+                                ),
+                                onLongPress: () => onDelete(p),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    photoStore.file(p.localPath),
+                                    width: 72,
+                                    height: 72,
+                                    fit: BoxFit.cover,
+                                    cacheWidth: 216,
+                                    errorBuilder: (_, _, _) =>
+                                        const SizedBox(width: 72, height: 72, child: Icon(Icons.broken_image)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
               ),
+            ),
+            const SizedBox(width: 8),
+            // Botones pequeños a la derecha de la cajita.
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton.filledTonal(
+                  tooltip: 'Tomar foto',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onCamera,
+                  icon: const Icon(Icons.photo_camera, size: 20),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'Elegir de la galería',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onGallery,
+                  icon: const Icon(Icons.photo_library, size: 20),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
-}
-
-class _AddButton extends StatelessWidget {
-  const _AddButton({required this.icon, required this.label, required this.onTap});
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(4),
-    child: SizedBox(
-      width: 96,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: onTap,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon), Text(label)]),
-      ),
-    ),
-  );
 }
 
 class _PhotoViewer extends ConsumerWidget {

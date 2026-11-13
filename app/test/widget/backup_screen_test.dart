@@ -71,8 +71,8 @@ void main() {
   }
 
   Future<void> openBackupScreen(WidgetTester tester) async {
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Configuración'));
+    await settle(tester);
     await tester.tap(find.text('Copia de seguridad'));
     await settle(tester);
   }
