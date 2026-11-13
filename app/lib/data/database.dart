@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import 'photo_store.dart';
+
 part 'database.g.dart';
 
 const _uuid = Uuid();
@@ -125,6 +127,9 @@ class Photos extends Table with SyncColumns {
   TextColumn get kind => text()();
   IntColumn get seq => integer()();
   TextColumn get fileName => text()();
+
+  /// Ruta relativa a la carpeta de la app (`fotos/<temporada>/<archivo>`).
+  /// Ver [PhotoStore.file] para obtener el archivo.
   TextColumn get localPath => text()();
   DateTimeColumn get takenAt => dateTime()();
 
@@ -153,12 +158,32 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      // Las migraciones usan SQL directo (no las clases de tabla) para que sigan
+      // siendo válidas cuando el esquema cambie en versiones futuras.
+      if (from < 2) await _photoPathsToRelative();
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  /// Versión 2: las fotos guardan su ruta relativa a la carpeta de la app.
+  Future<void> _photoPathsToRelative() async {
+    final rows = await customSelect('SELECT id, local_path FROM photos').get();
+    for (final r in rows) {
+      final old = r.read<String>('local_path');
+      final rel = relativePhotoPath(old);
+      if (rel != old) {
+        await customUpdate(
+          'UPDATE photos SET local_path = ? WHERE id = ?',
+          variables: [Variable.withString(rel), Variable.withString(r.read<String>('id'))],
+        );
+      }
+    }
+  }
 }

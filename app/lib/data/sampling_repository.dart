@@ -156,7 +156,7 @@ WHERE o.id = ?1
       kind: kind,
       seq: seq,
     );
-    final localPath = await photoStore.save(
+    final relativePath = await photoStore.save(
       sourcePath: sourcePath,
       folder: info.read<String>('season_id'),
       fileName: fileName,
@@ -169,7 +169,7 @@ WHERE o.id = ?1
             kind: kind.name,
             seq: seq,
             fileName: fileName,
-            localPath: localPath,
+            localPath: relativePath,
             takenAt: date,
           ),
         );

@@ -40,3 +40,14 @@ Estado: implementada, con pruebas automáticas. Pendiente de prueba en terreno.
 
 **Fuera del MVP:** informes, IA, nube, web, mapas, recordatorios, celebración animada al
 completar la semana (hoy es un mensaje con ícono).
+
+## Etapa 2 · Mediciones y datos (detalle)
+
+| Avance | Contenido | Estado |
+|---|---|---|
+| 2.1 | Copia de seguridad completa (datos + fotos) y restauración; rutas de fotos relativas (esquema v2) | ✅ Hecho |
+| 2.2 | Definir mediciones (número, entero, texto, opción, imagen) por cultivo o proyecto | Pendiente |
+| 2.3 | Mediciones en el registro y planilla semanal editable; borrar medición o semana | Pendiente |
+| 2.4 | Parámetros por variedad y temporada | Pendiente |
+| 2.5 | Exportar la temporada a Excel (.xlsx) | Pendiente |
+| 2.6 | Importar temporadas anteriores desde CSV/ZIP con vista previa | Pendiente |

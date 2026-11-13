@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -288,7 +287,7 @@ class _Section extends StatelessWidget {
   );
 }
 
-class _PhotoSection extends StatelessWidget {
+class _PhotoSection extends ConsumerWidget {
   const _PhotoSection({
     required this.kind,
     required this.photos,
@@ -309,7 +308,8 @@ class _PhotoSection extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final photoStore = ref.watch(photoStoreProvider);
     return _Section(
       title: _title,
       child: SizedBox(
@@ -329,7 +329,7 @@ class _PhotoSection extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.file(
-                      File(p.localPath),
+                      photoStore.file(p.localPath),
                       width: 96,
                       height: 96,
                       fit: BoxFit.cover,
@@ -369,14 +369,17 @@ class _AddButton extends StatelessWidget {
   );
 }
 
-class _PhotoViewer extends StatelessWidget {
+class _PhotoViewer extends ConsumerWidget {
   const _PhotoViewer({required this.photo});
   final Photo photo;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
     backgroundColor: Colors.black,
     appBar: AppBar(title: Text(photo.fileName, style: const TextStyle(fontSize: 14))),
-    body: InteractiveViewer(maxScale: 6, child: Center(child: Image.file(File(photo.localPath)))),
+    body: InteractiveViewer(
+      maxScale: 6,
+      child: Center(child: Image.file(ref.watch(photoStoreProvider).file(photo.localPath))),
+    ),
   );
 }

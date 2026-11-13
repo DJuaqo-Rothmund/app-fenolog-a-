@@ -6089,6 +6089,9 @@ class Photo extends DataClass implements Insertable<Photo> {
   final String kind;
   final int seq;
   final String fileName;
+
+  /// Ruta relativa a la carpeta de la app (`fotos/<temporada>/<archivo>`).
+  /// Ver [PhotoStore.file] para obtener el archivo.
   final String localPath;
   final DateTime takenAt;
 

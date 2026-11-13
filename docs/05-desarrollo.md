@@ -33,8 +33,35 @@ y publica el APK como *artifact*.
 | `lib/data/database.dart` | Tablas de la base local. Todas tienen UUID, fechas y borrado lógico para sincronizar después. |
 | `lib/data/crop_importer.dart` | Carga los cultivos JSON en la base; actualiza la escala si sube la versión. |
 | `lib/data/*_repository.dart` | Lectura y escritura de datos (catálogo, proyectos, registros y fotos). |
-| `lib/data/photo_store.dart` | Copia las fotos a la carpeta de la app con su nombre uniforme. |
+| `lib/data/photo_store.dart` | Copia las fotos a la carpeta de la app con su nombre uniforme. La base guarda la ruta **relativa** (`fotos/<temporada>/<archivo>`). |
+| `lib/data/backup_service.dart` | Copia de seguridad completa (`.zip` con `manifest.json`, la base y `fotos/`) y restauración. |
+| `lib/features/backup/` | Pantalla «Copia de seguridad» (menú ⋮ de la pantalla de inicio). |
 | `lib/features/...` | Pantallas. |
+
+## Copia de seguridad
+
+Menú ⋮ → **Copia de seguridad**.
+
+- **Crear copia y compartir:** arma un `.zip` con todos los datos y fotos y abre el menú
+  «Compartir» de Android para guardarlo en Drive, enviarlo por correo, etc. Con ≈ 500 fotos
+  pesa unos 150-300 MB. En el teléfono solo queda la última copia (en la caché).
+- **Restaurar:** elegir un `.zip`; la app muestra fecha y cantidades y pide confirmar.
+  Reemplaza **todo** lo del teléfono. Una copia de una versión anterior de la app se
+  actualiza sola al restaurarla; una de una versión más nueva se rechaza.
+- Contenido del `.zip`: `manifest.json` (app, formato, versión del esquema, fecha,
+  cantidades), `frambitacora.sqlite` (copia de la base hecha con `VACUUM INTO`) y `fotos/`.
+- Seguridad: solo se extraen esos nombres; se ignoran rutas absolutas o con `..`. Si la
+  copia de tablas falla, la transacción se deshace y los datos actuales quedan intactos.
+
+## Migraciones de la base
+
+| Versión | Cambio |
+|---|---|
+| 1 | Esquema inicial (etapa 1). |
+| 2 | Las fotos guardan su ruta relativa en vez de la ruta completa del teléfono. |
+
+Las migraciones están en `AppDatabase.migration` y usan SQL directo para no depender del
+esquema más nuevo.
 
 ## Agregar un cultivo
 

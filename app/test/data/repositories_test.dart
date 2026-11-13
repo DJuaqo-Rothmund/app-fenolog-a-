@@ -27,7 +27,7 @@ void main() {
     tmp = await Directory.systemTemp.createTemp('frambitacora_test');
     catalog = CatalogRepository(db);
     projects = ProjectRepository(db);
-    sampling = SamplingRepository(db, PhotoStore(baseDir: () async => tmp));
+    sampling = SamplingRepository(db, PhotoStore(tmp.path));
     crop = (await catalog.watchCrops().first).single;
     scale = await catalog.defaultScale(crop.id);
   });
@@ -197,11 +197,11 @@ void main() {
         [a.fileName, b.fileName, c.fileName],
         ['20260908_FRB_HERITAGE_G1.jpg', '20260908_FRB_HERITAGE_G2.jpg', '20260908_FRB_HERITAGE_D1.jpg'],
       );
-      expect(File(a.localPath).existsSync(), isTrue);
-      expect(a.localPath, contains(p.seasonId));
+      expect(a.localPath, 'fotos/${p.seasonId}/20260908_FRB_HERITAGE_G1.jpg', reason: 'ruta relativa');
+      expect(sampling.photoStore.file(a.localPath).existsSync(), isTrue);
 
       await sampling.deletePhoto(a);
-      expect(File(a.localPath).existsSync(), isFalse);
+      expect(sampling.photoStore.file(a.localPath).existsSync(), isFalse);
       expect(await sampling.watchPhotos(obs).first, hasLength(2));
 
       // Tras borrar, el correlativo no se reutiliza.

@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frambitacora/app.dart';
 import 'package:frambitacora/data/database.dart';
+import 'package:frambitacora/data/photo_store.dart';
 import 'package:frambitacora/domain/project_kind.dart';
 import 'package:frambitacora/providers.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -27,7 +30,12 @@ void main() {
   }
 
   Widget app() => ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(db), todayProvider.overrideWithValue(DateTime(2026, 10, 30))],
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      photoStoreProvider.overrideWithValue(PhotoStore(Directory.systemTemp.path)),
+      tempDirProvider.overrideWithValue(Directory.systemTemp.path),
+      todayProvider.overrideWithValue(DateTime(2026, 10, 30)),
+    ],
     child: const FramBitacoraApp(),
   );
 

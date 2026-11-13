@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'data/crop_importer.dart';
 import 'data/database.dart';
+import 'data/photo_store.dart';
 import 'providers.dart';
 
 Future<void> main() async {
@@ -14,5 +16,17 @@ Future<void> main() async {
   final db = AppDatabase();
   await CropImporter(db).importBundled();
 
-  runApp(ProviderScope(overrides: [databaseProvider.overrideWithValue(db)], child: const FramBitacoraApp()));
+  final docs = await getApplicationDocumentsDirectory();
+  final temp = await getTemporaryDirectory();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        photoStoreProvider.overrideWithValue(PhotoStore(docs.path)),
+        tempDirProvider.overrideWithValue(temp.path),
+      ],
+      child: const FramBitacoraApp(),
+    ),
+  );
 }

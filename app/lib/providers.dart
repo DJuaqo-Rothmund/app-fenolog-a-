@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'data/backup_service.dart';
 import 'data/catalog_repository.dart';
 import 'data/database.dart';
 import 'data/photo_store.dart';
@@ -9,7 +10,19 @@ import 'data/sampling_repository.dart';
 /// Se reemplaza en `main.dart` (base real) y en las pruebas (base en memoria).
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('databaseProvider sin configurar'));
 
-final photoStoreProvider = Provider<PhotoStore>((ref) => PhotoStore());
+/// Se reemplaza en `main.dart` (carpeta de documentos) y en las pruebas.
+final photoStoreProvider = Provider<PhotoStore>((ref) => throw UnimplementedError('photoStoreProvider sin configurar'));
+
+/// Carpeta temporal donde se arman las copias; se reemplaza en `main.dart` y en las pruebas.
+final tempDirProvider = Provider<String>((ref) => throw UnimplementedError('tempDirProvider sin configurar'));
+
+final backupServiceProvider = Provider(
+  (ref) => BackupService(
+    db: ref.watch(databaseProvider),
+    photoStore: ref.watch(photoStoreProvider),
+    tempDir: ref.watch(tempDirProvider),
+  ),
+);
 
 final catalogRepositoryProvider = Provider((ref) => CatalogRepository(ref.watch(databaseProvider)));
 final projectRepositoryProvider = Provider((ref) => ProjectRepository(ref.watch(databaseProvider)));

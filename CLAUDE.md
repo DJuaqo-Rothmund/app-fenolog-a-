@@ -7,8 +7,9 @@ un chat nuevo sin perder contexto. Leerlo completo antes de empezar.
 
 - Responder **siempre en español**, claro y sin jerga innecesaria.
 - Avanzar **etapa por etapa**, con pruebas automáticas y explicando qué hace cada parte.
-- Trabajar en la rama `main` de `DJuaqo-Rothmund/app-fenolog-a-`; commit y push al
-  terminar cada avance validado. No crear pull requests salvo que lo pida.
+- Etapa 2: trabajar en la rama `claude/frambita-etapa-2-plan-4v5wwj` de
+  `DJuaqo-Rothmund/app-fenolog-a-` (pedido del dueño); commit y push al terminar cada
+  avance validado. No crear pull requests salvo que lo pida.
 - Todo el código, textos, diseños e íconos son **originales**, escritos desde cero.
   No incorporar ni mencionar código o material de otras aplicaciones.
 - No volver a discutir licencias: el proyecto es **MIT** (`LICENSE`).
@@ -46,6 +47,9 @@ decisiones, guía de desarrollo).
   cuadrícula), temporadas, unidades, navegación por semanas, semana no muestreada, barra
   de avance, registro con estado, fotos (cámara/galería), notas y GPS.
 - Pendiente de **prueba en terreno** por el dueño.
+- **Etapa 2, avance 2.1 hecho:** copia de seguridad completa (`.zip`) y restauración
+  (menú ⋮ → Copia de seguridad), esquema v2 con rutas de fotos relativas. 50 pruebas pasan.
+  Detalle de avances en `docs/03-plan-etapas.md`.
 
 ## Pendientes y preguntas abiertas
 
@@ -55,8 +59,13 @@ decisiones, guía de desarrollo).
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
 3. Confirmar PowerSync vs. motor de sincronización propio antes de la etapa 4.
+4. Preguntas abiertas de la etapa 2 (sin respuesta aún): qué mediciones usa; un valor o
+   varias muestras por unidad y semana; qué es la medición «imagen»; campos y unidades de
+   los parámetros por variedad (¿por variedad o por unidad?); formato de los datos
+   anteriores a importar (pedir archivo de ejemplo); alcance de «borrar semana»; copia
+   automática además de la manual.
 
-## Próxima etapa: 2 · Mediciones y datos
+## Etapa en curso: 2 · Mediciones y datos
 
 - Mediciones definidas por el usuario (numéricas, texto, opción, imagen) por cultivo o
   proyecto; planilla editable por semana; borrar medición o semana.
@@ -78,4 +87,10 @@ decisiones, guía de desarrollo).
   `tester.runAsync` y la función `finish()` de `test/widget/app_flow_test.dart` para
   desmontar la app y cerrar la base sin timers pendientes.
 - Las fechas se guardan como texto ISO (`build.yaml`), útil para sincronizar con Postgres.
+- `photos.local_path` es **relativa** a la carpeta de documentos; usar
+  `PhotoStore.file(...)`. `photoStoreProvider` y `tempDirProvider` se configuran en
+  `main.dart` y deben reemplazarse en las pruebas de pantallas.
+- Trabajo pesado de archivos en `Isolate.run` desde funciones de nivel superior (una
+  función anónima dentro de un método arrastra la base abierta y falla).
+- Esquema actual: versión 2 (tabla de migraciones en `docs/05-desarrollo.md`).
 - Antes de subir: `flutter analyze`, `flutter test` y formato, todo en verde.
