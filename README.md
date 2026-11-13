@@ -46,6 +46,7 @@ docs/                     Tecnología, arquitectura, modelo de datos, plan y dec
 | [docs/03-plan-etapas.md](docs/03-plan-etapas.md) | Plan por etapas |
 | [docs/04-decisiones.md](docs/04-decisiones.md) | Decisiones tomadas |
 | [docs/05-desarrollo.md](docs/05-desarrollo.md) | Cómo compilar, probar y agregar cultivos |
+| [CLAUDE.md](CLAUDE.md) | Contexto del proyecto para continuar con Claude en un chat nuevo |
 
 ## Licencia
 
