@@ -88,19 +88,28 @@ esquema más nuevo.
 
 ## Llave de firma del APK
 
-Sin llave propia, cada compilación de GitHub se firma con una llave de depuración distinta
-y Android obliga a desinstalar (y perder los datos) antes de instalar la versión nueva.
-Para evitarlo, crear una vez una llave y guardarla como secretos del repositorio:
+Para que cada versión nueva **se instale encima de la anterior** (sin desinstalar ni
+perder datos), todas deben firmarse con la misma llave. Android solo actualiza una app si
+la llave coincide.
 
-```bash
-keytool -genkey -v -keystore frambitacora.jks -keyalg RSA -keysize 2048 -validity 10000 -alias frambitacora
-```
+1. Crear la llave una vez:
 
-```bash
-base64 -w0 frambitacora.jks
-```
+   ```bash
+   keytool -genkeypair -v -keystore frambitacora.jks -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 10000 -alias frambitacora
+   ```
 
-En GitHub → Settings → Secrets and variables → Actions, crear:
-`ANDROID_KEYSTORE_BASE64` (el texto del segundo comando), `ANDROID_KEYSTORE_PASSWORD`,
-`ANDROID_KEY_ALIAS` (`frambitacora`) y `ANDROID_KEY_PASSWORD`. Guardar el archivo `.jks` en
-un lugar seguro y **nunca** subirlo al repositorio.
+   ```bash
+   base64 -w0 frambitacora.jks
+   ```
+
+2. En GitHub → Settings → Secrets and variables → Actions → *New repository secret*,
+   crear `ANDROID_KEYSTORE_BASE64` (el texto del segundo comando),
+   `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`frambitacora`) y
+   `ANDROID_KEY_PASSWORD`.
+3. Guardar la llave (o el texto base64) en un lugar seguro y privado. **Nunca** subirla
+   al repositorio: es público y cualquiera podría firmar versiones falsas.
+
+Con los secretos cargados, GitHub Actions firma con esa llave; si faltan, la compilación
+muestra el aviso «APK sin llave propia». El cambio de la llave de depuración a la llave
+propia obliga a desinstalar **una sola vez**; desde ahí, las versiones se actualizan
+encima. El número de versión (`versionCode`) sube solo con cada compilación.

@@ -57,8 +57,10 @@ decisiones, guía de desarrollo).
 
 ## Pendientes y preguntas abiertas
 
-1. **Llave de firma del APK**: sin ella cada versión obliga a desinstalar (se pierden
-   datos). Pasos en `docs/05-desarrollo.md` (secretos `ANDROID_KEYSTORE_BASE64`, etc.).
+1. **Llave de firma del APK**: llave generada el 14-nov-2026 y entregada al dueño (fuera
+   del repositorio) para cargar los 4 secretos `ANDROID_KEYSTORE_*` en GitHub. Confirmar
+   que estén cargados (la compilación muestra el aviso «APK sin llave propia» si faltan).
+   Pasos en `docs/05-desarrollo.md`.
 2. **Historial de `main`**: el dueño pidió que no queden rastros de documentos de
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
