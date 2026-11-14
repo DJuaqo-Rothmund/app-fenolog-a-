@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database.dart';
 import '../../providers.dart';
+import '../app_icons.dart';
 import '../common.dart';
 
 /// Catálogo de variedades de un cultivo.
@@ -39,7 +40,11 @@ class _VarietiesScreenState extends ConsumerState<VarietiesScreen> {
       ),
       body: asyncView(varieties, (list) {
         if (list.isEmpty) {
-          return const EmptyState(icon: Icons.local_florist_outlined, message: 'Aún no hay variedades.');
+          return const EmptyState(
+            icon: Icons.local_florist_outlined,
+            illustration: AppIcon(AppIcons.variety, size: 64),
+            message: 'Aún no hay variedades.',
+          );
         }
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: 88),

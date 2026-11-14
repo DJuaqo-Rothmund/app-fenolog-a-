@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../data/database.dart';
 import '../providers.dart';
+import 'app_icons.dart';
 
 final shortDate = DateFormat("EEE d 'de' MMM", 'es');
 final longDate = DateFormat("EEEE d 'de' MMMM 'de' y", 'es');
@@ -46,9 +47,12 @@ class StageBadge extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.icon, required this.message});
+  const EmptyState({super.key, required this.icon, required this.message, this.illustration});
   final IconData icon;
   final String message;
+
+  /// Dibujo que reemplaza al ícono (p. ej. [EmptyIllustration]).
+  final Widget? illustration;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -57,7 +61,7 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 56, color: Theme.of(context).colorScheme.outline),
+          illustration ?? Icon(icon, size: 56, color: Theme.of(context).colorScheme.outline),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
         ],
@@ -181,8 +185,11 @@ class _PromptDialogState extends State<_PromptDialog> {
 
 /// Ícono dentro de un recuadro redondeado de color suave.
 class IconBadge extends StatelessWidget {
-  const IconBadge(this.icon, {super.key, this.size = 44, this.background, this.foreground});
-  final IconData icon;
+  const IconBadge(IconData this.icon, {super.key, this.size = 44, this.background, this.foreground}) : appIcon = null;
+  const IconBadge.app(AppIcons this.appIcon, {super.key, this.size = 44, this.background, this.foreground})
+    : icon = null;
+  final IconData? icon;
+  final AppIcons? appIcon;
   final double size;
   final Color? background;
   final Color? foreground;
@@ -198,7 +205,9 @@ class IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(size * 0.32),
       ),
       alignment: Alignment.center,
-      child: Icon(icon, size: size * 0.52, color: foreground ?? scheme.onPrimaryContainer),
+      child: appIcon != null
+          ? AppIcon(appIcon!, size: size * 0.56, color: foreground ?? scheme.onPrimaryContainer)
+          : Icon(icon, size: size * 0.52, color: foreground ?? scheme.onPrimaryContainer),
     );
   }
 }

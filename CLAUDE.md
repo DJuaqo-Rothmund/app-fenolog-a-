@@ -59,6 +59,10 @@ decisiones, guía de desarrollo).
   transiciones suaves y modo oscuro. Inicio con avance de la semana por proyecto; semana
   con encabezado y anillo de avance; registro y Configuración en tarjetas agrupadas
   (`IconBadge`, `SettingsGroup`, `SectionHeader` en `features/common.dart`).
+- **Logo e íconos propios** (SVG originales): `app/assets/brand/` y `app/assets/icons/`,
+  widgets `AppIcon`, `AppLogo`, `EmptyIllustration` en `features/app_icons.dart`
+  (paquete `flutter_svg`, MIT). Ícono del teléfono adaptable + monocromo y pantalla de
+  arranque crema con el logo. Regenerar con `bash app/tool/generate_launcher_icons.sh`.
 
 ## Pendientes y preguntas abiertas
 

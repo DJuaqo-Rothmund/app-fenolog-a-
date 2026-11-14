@@ -9,6 +9,7 @@ import '../../domain/completeness.dart';
 import '../../domain/photo_naming.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
+import '../app_icons.dart';
 import '../common.dart';
 import '../scale/scale_screen.dart';
 import 'device_services.dart';
@@ -172,6 +173,7 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                 _StatusBanner(complete: complete),
                 _Section(
                   title: 'Estado fenológico',
+                  icon: AppIcons.scale,
                   child: ListTile(
                     leading: StageBadge(code: stage?.code, color: stage?.color, size: 48),
                     title: Text(stage?.name ?? 'Sin estado'),
@@ -190,6 +192,7 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                   ),
                 _Section(
                   title: 'Notas',
+                  icon: AppIcons.notes,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -204,9 +207,10 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                 ),
                 _Section(
                   title: 'Ubicación (opcional)',
+                  icon: AppIcons.gps,
                   child: obs?.lat == null
                       ? ListTile(
-                          leading: const Icon(Icons.my_location),
+                          leading: const Icon(Icons.add_location_alt_outlined),
                           title: const Text('Agregar ubicación GPS'),
                           subtitle: const Text('Funciona sin internet'),
                           onTap: _busy ? null : _locate,
@@ -267,9 +271,10 @@ class _StatusBanner extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+  const _Section({required this.title, required this.child, this.icon});
   final String title;
   final Widget child;
+  final AppIcons? icon;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -281,7 +286,15 @@ class _Section extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+            child: Row(
+              children: [
+                if (icon != null) ...[
+                  AppIcon(icon!, size: 20, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+              ],
+            ),
           ),
           child,
         ],
@@ -315,6 +328,11 @@ class _PhotoSection extends ConsumerWidget {
     final photoStore = ref.watch(photoStoreProvider);
     final scheme = Theme.of(context).colorScheme;
     return _Section(
+      icon: switch (kind) {
+        PhotoKind.general => AppIcons.camera,
+        PhotoKind.detail => AppIcons.variety,
+        PhotoKind.extra => AppIcons.gallery,
+      },
       title: photos.isEmpty ? _title : '$_title · ${photos.length}',
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -372,13 +390,13 @@ class _PhotoSection extends ConsumerWidget {
                   tooltip: 'Tomar foto',
                   visualDensity: VisualDensity.compact,
                   onPressed: onCamera,
-                  icon: const Icon(Icons.photo_camera, size: 20),
+                  icon: const AppIcon(AppIcons.camera, size: 22),
                 ),
                 IconButton.filledTonal(
                   tooltip: 'Elegir de la galería',
                   visualDensity: VisualDensity.compact,
                   onPressed: onGallery,
-                  icon: const Icon(Icons.photo_library, size: 20),
+                  icon: const AppIcon(AppIcons.gallery, size: 22),
                 ),
               ],
             ),

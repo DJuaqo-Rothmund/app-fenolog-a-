@@ -17,6 +17,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.4.3
+  flutter_svg: ^2.4.0
   geolocator: ^14.1.2
   image_picker: ^1.2.4
   intl: ^0.20.3
@@ -36,3 +37,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/crops/
+    - assets/brand/
+    - assets/icons/

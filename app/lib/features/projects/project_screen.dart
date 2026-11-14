@@ -7,6 +7,7 @@ import '../../domain/completeness.dart';
 import '../../domain/project_kind.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
+import '../app_icons.dart';
 import '../common.dart';
 import '../sampling/observation_screen.dart';
 import '../settings/project_settings_screen.dart';
@@ -73,7 +74,7 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
           actions: [
             IconButton(
               tooltip: 'Configurar proyecto',
-              icon: const Icon(Icons.tune),
+              icon: const AppIcon(AppIcons.settings),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(builder: (_) => ProjectSettingsScreen(projectId: p.id)),

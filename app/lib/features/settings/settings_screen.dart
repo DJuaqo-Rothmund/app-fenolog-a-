@@ -5,6 +5,7 @@ import '../../data/database.dart';
 import '../../domain/project_kind.dart';
 import '../../providers.dart';
 import '../backup/backup_screen.dart';
+import '../app_icons.dart';
 import '../common.dart';
 import '../projects/project_form_screen.dart';
 import '../projects/projects_screen.dart' show kindStyle;
@@ -37,14 +38,14 @@ class SettingsScreen extends ConsumerWidget {
           SettingsGroup(
             children: [
               ListTile(
-                leading: const IconBadge(Icons.local_florist_outlined, size: 40),
+                leading: const IconBadge.app(AppIcons.variety, size: 40),
                 title: const Text('Variedades'),
                 subtitle: const Text('Crear, editar y archivar variedades'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _openCatalog(context, ref, (c) => VarietiesScreen(cropId: c.id, cropName: c.name)),
               ),
               ListTile(
-                leading: const IconBadge(Icons.palette_outlined, size: 40),
+                leading: const IconBadge.app(AppIcons.scale, size: 40),
                 title: const Text('Escala fenológica'),
                 subtitle: const Text('Estadios y colores del cultivo'),
                 trailing: const Icon(Icons.chevron_right),
@@ -72,7 +73,7 @@ class SettingsScreen extends ConsumerWidget {
                     final kind = ProjectKind.fromName(p.kind);
                     final style = kindStyle(context, kind);
                     return ListTile(
-                      leading: IconBadge(
+                      leading: IconBadge.app(
                         style.icon,
                         size: 40,
                         background: style.background,
@@ -80,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       title: Text(p.name),
                       subtitle: Text(p.archived ? '${kind.label} · archivado' : kind.label),
-                      trailing: const Icon(Icons.tune),
+                      trailing: const AppIcon(AppIcons.settings),
                       onTap: () => _push(context, ProjectSettingsScreen(projectId: p.id)),
                     );
                   },
@@ -91,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
           SettingsGroup(
             children: [
               ListTile(
-                leading: const IconBadge(Icons.backup_outlined, size: 40),
+                leading: const IconBadge.app(AppIcons.backup, size: 40),
                 title: const Text('Copia de seguridad'),
                 subtitle: const Text('Guardar o restaurar todos los datos y fotos'),
                 trailing: const Icon(Icons.chevron_right),

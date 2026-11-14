@@ -66,6 +66,19 @@ Configuración (engranaje) → **Copia de seguridad**.
 Las migraciones están en `AppDatabase.migration` y usan SQL directo para no depender del
 esquema más nuevo.
 
+## Logo e íconos
+
+Dibujos originales, en vectores (SVG):
+
+- `app/assets/brand/`: logo (frambuesa con cáliz y hoja sobre verde hoja), ícono
+  adaptable de Android (fondo, frambuesa y versión monocroma) e ilustración de pantalla
+  vacía. Se generan con `python3 tool/brand_svgs.py`.
+- `app/assets/icons/`: íconos de línea de 24 × 24 (variedad, tratamiento, predio, cámara,
+  galería, escala, copia, notas, GPS, configuración, semana). En la app se usan con
+  `AppIcon(AppIcons.camera)`; toman el tamaño y color del entorno.
+- Íconos del teléfono (`android/app/src/main/res/`): `bash tool/generate_launcher_icons.sh`
+  los vuelve a generar desde los SVG (requiere Node con Playwright).
+
 ## Configuración de proyectos
 
 - **Ensayo de variedades:** «Agregar variedades» muestra el catálogo con casillas (y botón

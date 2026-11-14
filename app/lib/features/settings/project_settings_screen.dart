@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database.dart';
 import '../../domain/project_kind.dart';
 import '../../providers.dart';
+import '../app_icons.dart';
 import '../common.dart';
 import '../projects/project_screen.dart';
 import '../projects/projects_screen.dart' show kindStyle;
@@ -54,7 +55,7 @@ class ProjectSettingsScreen extends ConsumerWidget {
                   onTap: () => _rename(context, ref, p),
                 ),
                 ListTile(
-                  leading: IconBadge(
+                  leading: IconBadge.app(
                     kindStyle(context, kind).icon,
                     size: 40,
                     background: kindStyle(context, kind).background,
@@ -65,7 +66,7 @@ class ProjectSettingsScreen extends ConsumerWidget {
                 ),
                 if (season != null)
                   ListTile(
-                    leading: const IconBadge(Icons.event_outlined, size: 40),
+                    leading: const IconBadge.app(AppIcons.week, size: 40),
                     title: Text('Temporada ${season.name}'),
                     subtitle: Text('Semana 1 desde el ${longDate.format(season.week1Start)}'),
                     trailing: const Icon(Icons.edit_outlined),
@@ -78,7 +79,7 @@ class ProjectSettingsScreen extends ConsumerWidget {
               SettingsGroup(
                 children: [
                   ListTile(
-                    leading: const IconBadge(Icons.grid_view_rounded, size: 40),
+                    leading: const IconBadge.app(AppIcons.treatment, size: 40),
                     title: Text(design.summary),
                     subtitle: const Text('Toca para cambiar tratamientos, repeticiones o testigo'),
                     trailing: const Icon(Icons.edit_outlined),

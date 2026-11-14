@@ -7,6 +7,7 @@ import '../../domain/completeness.dart';
 import '../../domain/project_kind.dart';
 import '../../domain/season_weeks.dart';
 import '../../providers.dart';
+import '../app_icons.dart';
 import '../common.dart';
 import '../settings/settings_screen.dart';
 import 'project_form_screen.dart';
@@ -15,24 +16,20 @@ import 'project_screen.dart';
 final _today = DateFormat("EEEE d 'de' MMMM", 'es');
 
 /// Ícono y colores de cada tipo de proyecto.
-({IconData icon, Color background, Color foreground}) kindStyle(BuildContext context, ProjectKind kind) {
+({AppIcons icon, Color background, Color foreground}) kindStyle(BuildContext context, ProjectKind kind) {
   final s = Theme.of(context).colorScheme;
   return switch (kind) {
     ProjectKind.varietyTrial => (
-      icon: Icons.science_outlined,
+      icon: AppIcons.variety,
       background: s.primaryContainer,
       foreground: s.onPrimaryContainer,
     ),
     ProjectKind.treatmentTrial => (
-      icon: Icons.grid_view_rounded,
+      icon: AppIcons.treatment,
       background: s.tertiaryContainer,
       foreground: s.onTertiaryContainer,
     ),
-    ProjectKind.farm => (
-      icon: Icons.agriculture_outlined,
-      background: s.secondaryContainer,
-      foreground: s.onSecondaryContainer,
-    ),
+    ProjectKind.farm => (icon: AppIcons.farm, background: s.secondaryContainer, foreground: s.onSecondaryContainer),
   };
 }
 
@@ -67,7 +64,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           ),
           IconButton(
             tooltip: 'Configuración',
-            icon: const Icon(Icons.settings_outlined),
+            icon: const AppIcon(AppIcons.settings),
             onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
           ),
           const SizedBox(width: 4),
@@ -87,11 +84,23 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('FramBitácora', style: text.headlineMedium),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${today[0].toUpperCase()}${today.substring(1)}',
-                      style: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+                    Row(
+                      children: [
+                        const AppLogo(size: 52),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('FramBitácora', style: text.headlineMedium),
+                              Text(
+                                '${today[0].toUpperCase()}${today.substring(1)}',
+                                style: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -102,6 +111,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 hasScrollBody: false,
                 child: EmptyState(
                   icon: Icons.eco_outlined,
+                  illustration: EmptyIllustration(),
                   message: 'Aún no hay proyectos.\nCrea un ensayo o un predio con el botón «Proyecto».',
                 ),
               )
@@ -145,7 +155,7 @@ class _ProjectCard extends StatelessWidget {
     final style = kindStyle(context, kind);
     final text = Theme.of(context).textTheme;
     final subtitle = project.archived ? '${kind.label} · archivado' : kind.label;
-    final badge = IconBadge(style.icon, background: style.background, foreground: style.foreground);
+    final badge = IconBadge.app(style.icon, background: style.background, foreground: style.foreground);
     final name = Text(project.name, style: text.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis);
     final kindText = Text(
       subtitle,
