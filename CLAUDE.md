@@ -54,6 +54,11 @@ decisiones, guía de desarrollo).
   variedades»; ensayo de tratamientos con diseño (n.º tratamientos, repeticiones, testigo
   T0) editable y descripción por tratamiento (esquema v3); botones de foto pequeños a la
   derecha de cada cajita. 59 pruebas pasan. Detalle en `docs/03-plan-etapas.md`.
+- **Diseño moderno (Material 3):** tema central en `app/lib/app.dart` (`buildTheme`):
+  tarjetas redondeadas sin bordes, campos rellenos, botones de 52 px, avisos flotantes,
+  transiciones suaves y modo oscuro. Inicio con avance de la semana por proyecto; semana
+  con encabezado y anillo de avance; registro y Configuración en tarjetas agrupadas
+  (`IconBadge`, `SettingsGroup`, `SectionHeader` en `features/common.dart`).
 
 ## Pendientes y preguntas abiertas
 
@@ -102,4 +107,6 @@ decisiones, guía de desarrollo).
   migraciones usan SQL directo y toleran columnas ya existentes.
 - Diálogos con campos de texto: el diálogo debe ser un `StatefulWidget` dueño de sus
   `TextEditingController` (liberarlos tras `showDialog` rompe la animación de cierre).
+- Pruebas de pantallas: usar `phoneScreen(tester)` (pantalla de teléfono 411 × 891) y
+  `tapVisible` para tocar elementos que pueden quedar en el borde o bajo un aviso.
 - Antes de subir: `flutter analyze`, `flutter test` y formato, todo en verde.

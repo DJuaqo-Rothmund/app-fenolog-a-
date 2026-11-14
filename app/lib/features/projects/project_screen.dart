@@ -81,11 +81,14 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => showUnitForm(context, project: p),
-          icon: const Icon(Icons.add),
-          label: const Text('Unidad'),
-        ),
+        // En los ensayos de tratamientos las unidades salen del diseño (Configuración).
+        floatingActionButton: ProjectKind.fromName(p.kind) == ProjectKind.treatmentTrial
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: () => showUnitForm(context, project: p),
+                icon: const Icon(Icons.add),
+                label: const Text('Unidad'),
+              ),
         body: asyncView(season, (s) {
           if (s == null) return const EmptyState(icon: Icons.event_busy, message: 'Este proyecto no tiene temporada.');
           final week = _week ?? _currentWeek(s);
@@ -132,64 +135,93 @@ class _WeekView extends ConsumerWidget {
     final iso = isoWeek(start);
     final text = Theme.of(context).textTheme;
 
+    final scheme = Theme.of(context).colorScheme;
+    final onHeader = scheme.onPrimaryContainer;
+
     return Column(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Semana anterior',
-                      onPressed: week > 1 ? () => onWeekChanged(week - 1) : null,
-                      icon: const Icon(Icons.chevron_left),
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+          decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(28)),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Semana $week', style: text.headlineSmall?.copyWith(color: onHeader)),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Desde el ${shortDate.format(start)} · semana ${iso.week} del año ${iso.year}',
+                          style: text.bodySmall?.copyWith(color: onHeader),
+                        ),
+                        Text('Temporada ${season.name}', style: text.bodySmall?.copyWith(color: onHeader)),
+                      ],
                     ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text('Semana $week', style: text.titleLarge),
-                          Text(
-                            'Semana ${iso.week} del año ${iso.year} · desde el ${shortDate.format(start)}',
-                            style: text.bodySmall,
-                            textAlign: TextAlign.center,
-                          ),
-                          Text('Temporada ${season.name}', style: text.bodySmall),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Semana siguiente',
-                      onPressed: () => onWeekChanged(week + 1),
-                      icon: const Icon(Icons.chevron_right),
-                    ),
-                  ],
-                ),
-                if (week != currentWeek)
-                  TextButton.icon(
-                    onPressed: () => onWeekChanged(currentWeek),
-                    icon: const Icon(Icons.today),
-                    label: const Text('Ir a la semana actual'),
                   ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: asyncView(
+                  asyncView(
                     rows,
-                    (list) => _Progress(
+                    (list) => _ProgressRing(
                       progress: WeekProgress(complete: list.where((r) => r.isComplete).length, total: list.length),
                       notSampled: notSampled,
                     ),
                   ),
-                ),
-                SwitchListTile(
-                  dense: true,
-                  title: const Text('Semana no muestreada'),
-                  value: notSampled,
-                  onChanged: (v) => ref.read(samplingRepositoryProvider).setWeekNotSampled(season.id, week, v),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    tooltip: 'Semana anterior',
+                    onPressed: week > 1 ? () => onWeekChanged(week - 1) : null,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        asyncView(
+                          rows,
+                          (list) => _ProgressLabel(
+                            progress: WeekProgress(
+                              complete: list.where((r) => r.isComplete).length,
+                              total: list.length,
+                            ),
+                            notSampled: notSampled,
+                          ),
+                        ),
+                        if (week != currentWeek)
+                          TextButton.icon(
+                            onPressed: () => onWeekChanged(currentWeek),
+                            icon: const Icon(Icons.today),
+                            label: const Text('Ir a la semana actual'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    tooltip: 'Semana siguiente',
+                    onPressed: () => onWeekChanged(week + 1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text('Semana no muestreada', style: text.bodyMedium?.copyWith(color: onHeader)),
+                  ),
+                  Switch(
+                    value: notSampled,
+                    onChanged: (v) => ref.read(samplingRepositoryProvider).setWeekNotSampled(season.id, week, v),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -203,7 +235,7 @@ class _WeekView extends ConsumerWidget {
               );
             }
             return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 88),
+              padding: const EdgeInsets.only(top: 4, bottom: 96),
               itemCount: list.length,
               itemBuilder: (_, i) => _UnitTile(
                 row: list[i],
@@ -224,39 +256,65 @@ class _WeekView extends ConsumerWidget {
   }
 }
 
-class _Progress extends StatelessWidget {
-  const _Progress({required this.progress, required this.notSampled});
+/// Anillo con el avance de la semana (registros completos / total).
+class _ProgressRing extends StatelessWidget {
+  const _ProgressRing({required this.progress, required this.notSampled});
   final WeekProgress progress;
   final bool notSampled;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 68,
+      height: 68,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CircularProgressIndicator(
+            value: notSampled ? 0 : progress.fraction,
+            strokeWidth: 7,
+            strokeCap: StrokeCap.round,
+            backgroundColor: scheme.surface.withValues(alpha: 0.6),
+            color: progress.isDone ? scheme.secondary : scheme.primary,
+          ),
+          Center(
+            child: notSampled
+                ? Icon(Icons.block, color: scheme.onPrimaryContainer)
+                : progress.isDone
+                ? Icon(Icons.celebration, color: scheme.secondary)
+                : Text(
+                    '${progress.complete}/${progress.total}',
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(color: scheme.onPrimaryContainer, fontWeight: FontWeight.w700),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressLabel extends StatelessWidget {
+  const _ProgressLabel({required this.progress, required this.notSampled});
+  final WeekProgress progress;
+  final bool notSampled;
+
+  @override
+  Widget build(BuildContext context) {
     final label = notSampled
         ? 'Semana marcada como no muestreada'
         : progress.isDone
         ? '¡Semana completa! ${progress.complete} de ${progress.total} registros'
         : '${progress.complete} de ${progress.total} registros completos';
-    return Column(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: notSampled ? 0 : progress.fraction,
-            minHeight: 10,
-            color: progress.isDone ? scheme.secondary : scheme.primary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (progress.isDone && !notSampled) Icon(Icons.celebration, size: 18, color: scheme.secondary),
-            const SizedBox(width: 4),
-            Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelLarge
+            ?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+      ),
     );
   }
 }
@@ -274,15 +332,20 @@ class _UnitTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final stage = row.stageName == null ? 'Sin estado' : '${row.stageCode} · ${row.stageName}';
     final photos = row.photoCount == 1 ? '1 foto' : '${row.photoCount} fotos';
-    return ListTile(
-      leading: StageBadge(code: row.stageCode, color: row.stageColor),
-      title: Text(info == null ? row.unit.label : '${row.unit.label} · $info', overflow: TextOverflow.ellipsis),
-      subtitle: Text('$stage · $photos'),
-      trailing: row.isComplete
-          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, semanticLabel: 'Completo')
-          : const Icon(Icons.radio_button_unchecked, semanticLabel: 'Pendiente'),
-      onTap: onTap,
-      onLongPress: onLongPress,
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(12, 6, 16, 6),
+        leading: StageBadge(code: row.stageCode, color: row.stageColor, size: 44),
+        title: Text(info == null ? row.unit.label : '${row.unit.label} · $info', overflow: TextOverflow.ellipsis),
+        subtitle: Text('$stage · $photos'),
+        trailing: row.isComplete
+            ? Icon(Icons.check_circle, color: scheme.primary, semanticLabel: 'Completo')
+            : Icon(Icons.radio_button_unchecked, color: scheme.outline, semanticLabel: 'Pendiente'),
+        onTap: onTap,
+        onLongPress: onLongPress,
+      ),
     );
   }
 }

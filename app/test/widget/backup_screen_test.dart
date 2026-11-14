@@ -41,6 +41,13 @@ void main() {
 
   tearDown(() => tmp.delete(recursive: true));
 
+  /// Pantalla del tamaño de un teléfono (411 × 891, en vertical).
+  void phoneScreen(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 1080 / 411;
+    addTearDown(tester.view.reset);
+  }
+
   Future<void> finish(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
@@ -78,6 +85,7 @@ void main() {
   }
 
   testWidgets('crear una copia la ofrece para compartir y restaurarla recupera los datos', (tester) async {
+    phoneScreen(tester);
     await tester.runAsync(() async {
       final crop = await db.select(db.crops).getSingle();
       final scale = await db.select(db.phenoScales).getSingle();
@@ -119,6 +127,7 @@ void main() {
   });
 
   testWidgets('un archivo que no es copia muestra un aviso y no cambia nada', (tester) async {
+    phoneScreen(tester);
     final bad = File('${tmp.path}/malo.zip')..writeAsBytesSync([1, 2, 3]);
     actions.toPick = bad.path;
     await tester.pumpWidget(app());

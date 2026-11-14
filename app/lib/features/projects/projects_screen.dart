@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/database.dart';
+import '../../domain/completeness.dart';
 import '../../domain/project_kind.dart';
+import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../common.dart';
 import '../settings/settings_screen.dart';
 import 'project_form_screen.dart';
 import 'project_screen.dart';
+
+final _today = DateFormat("EEEE d 'de' MMMM", 'es');
+
+/// Ícono y colores de cada tipo de proyecto.
+({IconData icon, Color background, Color foreground}) kindStyle(BuildContext context, ProjectKind kind) {
+  final s = Theme.of(context).colorScheme;
+  return switch (kind) {
+    ProjectKind.varietyTrial => (
+      icon: Icons.science_outlined,
+      background: s.primaryContainer,
+      foreground: s.onPrimaryContainer,
+    ),
+    ProjectKind.treatmentTrial => (
+      icon: Icons.grid_view_rounded,
+      background: s.tertiaryContainer,
+      foreground: s.onTertiaryContainer,
+    ),
+    ProjectKind.farm => (
+      icon: Icons.agriculture_outlined,
+      background: s.secondaryContainer,
+      foreground: s.onSecondaryContainer,
+    ),
+  };
+}
 
 /// Pantalla de inicio: lista de proyectos (ensayos y predios).
 class ProjectsScreen extends ConsumerStatefulWidget {
@@ -26,13 +53,16 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projects = ref.watch(projectsProvider);
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final today = _today.format(ref.watch(todayProvider));
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FramBitácora'),
         actions: [
           IconButton(
             tooltip: _grid ? 'Ver como lista' : 'Ver como cuadrícula',
-            icon: Icon(_grid ? Icons.view_list : Icons.grid_view),
+            icon: Icon(_grid ? Icons.view_agenda_outlined : Icons.grid_view_outlined),
             onPressed: () => setState(() => _grid = !_grid),
           ),
           IconButton(
@@ -40,6 +70,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -48,27 +79,54 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         label: const Text('Proyecto'),
       ),
       body: asyncView(projects, (list) {
-        if (list.isEmpty) {
-          return const EmptyState(
-            icon: Icons.eco_outlined,
-            message: 'Aún no hay proyectos.\nCrea un ensayo o un predio con el botón «Proyecto».',
-          );
-        }
-        if (_grid) {
-          return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 88),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 220,
-              childAspectRatio: 1.2,
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('FramBitácora', style: text.headlineMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${today[0].toUpperCase()}${today.substring(1)}',
+                      style: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            itemCount: list.length,
-            itemBuilder: (_, i) => _ProjectCard(project: list[i], onTap: () => _openProject(list[i]), compact: true),
-          );
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 8, bottom: 88),
-          itemCount: list.length,
-          itemBuilder: (_, i) => _ProjectCard(project: list[i], onTap: () => _openProject(list[i])),
+            if (list.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.eco_outlined,
+                  message: 'Aún no hay proyectos.\nCrea un ensayo o un predio con el botón «Proyecto».',
+                ),
+              )
+            else if (_grid)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 96),
+                sliver: SliverGrid.builder(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 220,
+                    childAspectRatio: 0.95,
+                  ),
+                  itemCount: list.length,
+                  itemBuilder: (_, i) =>
+                      _ProjectCard(project: list[i], onTap: () => _openProject(list[i]), compact: true),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.only(bottom: 96),
+                sliver: SliverList.builder(
+                  itemCount: list.length,
+                  itemBuilder: (_, i) => _ProjectCard(project: list[i], onTap: () => _openProject(list[i])),
+                ),
+              ),
+          ],
         );
       }),
     );
@@ -81,48 +139,95 @@ class _ProjectCard extends StatelessWidget {
   final VoidCallback onTap;
   final bool compact;
 
-  IconData get _icon => switch (ProjectKind.fromName(project.kind)) {
-    ProjectKind.varietyTrial => Icons.science_outlined,
-    ProjectKind.treatmentTrial => Icons.grid_on,
-    ProjectKind.farm => Icons.agriculture_outlined,
-  };
-
   @override
   Widget build(BuildContext context) {
     final kind = ProjectKind.fromName(project.kind);
+    final style = kindStyle(context, kind);
+    final text = Theme.of(context).textTheme;
     final subtitle = project.archived ? '${kind.label} · archivado' : kind.label;
-    if (compact) {
-      return Card(
+    final badge = IconBadge(style.icon, background: style.background, foreground: style.foreground);
+    final name = Text(project.name, style: text.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis);
+    final kindText = Text(
+      subtitle,
+      style: text.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+
+    final content = compact
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              badge,
+              const Spacer(),
+              name,
+              kindText,
+              const SizedBox(height: 10),
+              _CurrentWeek(project: project),
+            ],
+          )
+        : Row(
+            children: [
+              badge,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    name,
+                    kindText,
+                    const SizedBox(height: 10),
+                    _CurrentWeek(project: project),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right),
+            ],
+          );
+
+    return Opacity(
+      opacity: project.archived ? 0.6 : 1,
+      child: Card(
+        margin: compact ? const EdgeInsets.all(4) : null,
         child: InkWell(
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(_icon, size: 32, color: Theme.of(context).colorScheme.primary),
-                const Spacer(),
-                Text(
-                  project.name,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
+          child: Padding(padding: const EdgeInsets.all(16), child: content),
+        ),
+      ),
+    );
+  }
+}
+
+/// Avance de la semana actual del proyecto («Semana 10 · 2 de 4»).
+class _CurrentWeek extends ConsumerWidget {
+  const _CurrentWeek({required this.project});
+  final Project project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final season = ref.watch(currentSeasonProvider(project.id)).value;
+    if (season == null) return const SizedBox.shrink();
+    final week = seasonWeekFor(ref.watch(todayProvider), season.week1Start).clamp(1, 1 << 30);
+    final rows = ref.watch(weekRowsProvider((projectId: project.id, seasonId: season.id, week: week))).value;
+    final progress = WeekProgress(complete: rows?.where((r) => r.isComplete).length ?? 0, total: rows?.length ?? 0);
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Semana $week · ${progress.complete} de ${progress.total}',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress.fraction,
+            minHeight: 6,
+            backgroundColor: scheme.surfaceContainerHighest,
+            color: progress.isDone ? scheme.secondary : scheme.primary,
           ),
         ),
-      );
-    }
-    return Card(
-      child: ListTile(
-        leading: Icon(_icon, color: Theme.of(context).colorScheme.primary),
-        title: Text(project.name),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
+      ],
     );
   }
 }

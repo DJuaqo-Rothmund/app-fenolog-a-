@@ -198,10 +198,7 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                       minLines: 2,
                       maxLines: 8,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        hintText: 'Observaciones técnicas',
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(hintText: 'Observaciones técnicas'),
                     ),
                   ),
                 ),
@@ -243,16 +240,19 @@ class _StatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: complete ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        color: complete ? scheme.primaryContainer : scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
-          Icon(complete ? Icons.check_circle : Icons.info_outline),
-          const SizedBox(width: 8),
+          Icon(
+            complete ? Icons.check_circle : Icons.info_outline,
+            color: complete ? scheme.onPrimaryContainer : scheme.onTertiaryContainer,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               complete
@@ -272,17 +272,20 @@ class _Section extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-        ),
-        child,
-      ],
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ),
+          child,
+        ],
+      ),
     ),
   );
 }
@@ -322,8 +325,8 @@ class _PhotoSection extends ConsumerWidget {
               child: Container(
                 height: 88,
                 decoration: BoxDecoration(
-                  border: Border.all(color: scheme.outlineVariant),
-                  borderRadius: BorderRadius.circular(12),
+                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: photos.isEmpty
                     ? Center(

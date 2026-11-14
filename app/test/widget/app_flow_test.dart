@@ -25,6 +25,13 @@ void main() {
   });
 
   /// Desmonta la app y deja que drift cierre sus consultas antes de terminar.
+  /// Pantalla del tamaño de un teléfono (411 × 891, en vertical).
+  void phoneScreen(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 1080 / 411;
+    addTearDown(tester.view.reset);
+  }
+
   Future<void> finish(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
@@ -50,6 +57,7 @@ void main() {
   }
 
   testWidgets('sin proyectos se muestra la invitación a crear uno', (tester) async {
+    phoneScreen(tester);
     await tester.pumpWidget(app());
     await settle(tester);
     expect(find.text('FramBitácora'), findsOneWidget);
@@ -59,6 +67,7 @@ void main() {
   });
 
   testWidgets('crear un proyecto desde el formulario', (tester) async {
+    phoneScreen(tester);
     await tester.pumpWidget(app());
     await settle(tester);
 
@@ -84,6 +93,7 @@ void main() {
   });
 
   testWidgets('el proyecto muestra la semana actual y el avance', (tester) async {
+    phoneScreen(tester);
     await tester.runAsync(() async {
       final crop = await db.select(db.crops).getSingle();
       final scale = await db.select(db.phenoScales).getSingle();
@@ -122,6 +132,14 @@ void main() {
     await finish(tester);
   });
 
+  /// Cierra los avisos flotantes, deja [finder] completo en pantalla y lo toca.
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).removeCurrentSnackBar();
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+  }
+
   /// Lista de la configuración del proyecto.
   Finder settingsList() =>
       find.descendant(of: find.byType(ProjectSettingsScreen), matching: find.byType(Scrollable)).first;
@@ -130,6 +148,7 @@ void main() {
   Finder formList() => find.descendant(of: find.byType(ProjectFormScreen), matching: find.byType(Scrollable)).first;
 
   testWidgets('desde Configuración se arma un ensayo de variedades completo', (tester) async {
+    phoneScreen(tester);
     await tester.pumpWidget(app());
     await settle(tester);
 
@@ -167,7 +186,7 @@ void main() {
       200,
       scrollable: find.descendant(of: find.byType(ProjectSettingsScreen), matching: find.byType(Scrollable)).first,
     );
-    await tester.tap(find.text('Listo, ir al proyecto'));
+    await tapVisible(tester, find.text('Listo, ir al proyecto'));
     await settle(tester);
     expect(find.text('Semana 8'), findsOneWidget);
     expect(find.text('Heritage'), findsOneWidget);
@@ -176,6 +195,7 @@ void main() {
   });
 
   testWidgets('el registro muestra cajitas de fotos con botones pequeños y notas', (tester) async {
+    phoneScreen(tester);
     await tester.runAsync(() async {
       final crop = await db.select(db.crops).getSingle();
       final scale = await db.select(db.phenoScales).getSingle();
@@ -212,6 +232,7 @@ void main() {
   });
 
   testWidgets('ensayo de tratamientos: diseño al crearlo, descripción y cambios en Configuración', (tester) async {
+    phoneScreen(tester);
     await tester.pumpWidget(app());
     await settle(tester);
     await tester.tap(find.text('Proyecto'));
@@ -241,7 +262,7 @@ void main() {
 
     // Describir T1.
     await tester.scrollUntilVisible(find.text('T1'), 150, scrollable: settingsList());
-    await tester.tap(find.text('T1'));
+    await tapVisible(tester, find.text('T1'));
     await settle(tester);
     await tester.enterText(find.byType(TextField), '2 L/ha producto A');
     await tester.tap(find.text('Guardar'));
@@ -255,7 +276,7 @@ void main() {
     );
 
     // Cambiar el diseño: sin testigo, con la confirmación de que se quitan unidades.
-    await tester.tap(find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'));
+    await tapVisible(tester, find.text('T0 (testigo) + T1…T2 × 3 repeticiones = 9 unidades'));
     await settle(tester);
     await tester.tap(find.text('¿Tiene testigo (T0)?'));
     await tester.pump();

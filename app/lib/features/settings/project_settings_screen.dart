@@ -6,6 +6,7 @@ import '../../domain/project_kind.dart';
 import '../../providers.dart';
 import '../common.dart';
 import '../projects/project_screen.dart';
+import '../projects/projects_screen.dart' show kindStyle;
 import '../projects/season_dialog.dart';
 import '../projects/treatment_design.dart';
 import '../projects/unit_form.dart';
@@ -43,107 +44,136 @@ class ProjectSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 32),
           children: [
             const SectionHeader('Proyecto'),
-            ListTile(
-              leading: const Icon(Icons.badge_outlined),
-              title: const Text('Nombre'),
-              subtitle: Text(p.name),
-              trailing: const Icon(Icons.edit),
-              onTap: () => _rename(context, ref, p),
+            SettingsGroup(
+              children: [
+                ListTile(
+                  leading: const IconBadge(Icons.badge_outlined, size: 40),
+                  title: const Text('Nombre'),
+                  subtitle: Text(p.name),
+                  trailing: const Icon(Icons.edit_outlined),
+                  onTap: () => _rename(context, ref, p),
+                ),
+                ListTile(
+                  leading: IconBadge(
+                    kindStyle(context, kind).icon,
+                    size: 40,
+                    background: kindStyle(context, kind).background,
+                    foreground: kindStyle(context, kind).foreground,
+                  ),
+                  title: Text(kind.label),
+                  subtitle: Text([kind.help, if (crop != null) 'Cultivo: ${crop.name}'].join('\n')),
+                ),
+                if (season != null)
+                  ListTile(
+                    leading: const IconBadge(Icons.event_outlined, size: 40),
+                    title: Text('Temporada ${season.name}'),
+                    subtitle: Text('Semana 1 desde el ${longDate.format(season.week1Start)}'),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: () => showSeasonDialog(context, ref, season),
+                  ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.category_outlined),
-              title: Text(kind.label),
-              subtitle: Text([kind.help, if (crop != null) 'Cultivo: ${crop.name}'].join('\n')),
-            ),
-            if (season != null) ...[
-              const SectionHeader('Temporada'),
-              ListTile(
-                leading: const Icon(Icons.event),
-                title: Text(season.name),
-                subtitle: Text('Semana 1 desde el ${longDate.format(season.week1Start)}'),
-                trailing: const Icon(Icons.edit),
-                onTap: () => showSeasonDialog(context, ref, season),
-              ),
-            ],
             if (kind == ProjectKind.treatmentTrial) ...[
               const SectionHeader('Diseño del ensayo'),
-              ListTile(
-                leading: const Icon(Icons.grid_on),
-                title: Text(design.summary),
-                subtitle: const Text('Toca para cambiar tratamientos, repeticiones o testigo'),
-                trailing: const Icon(Icons.edit),
-                onTap: () => _editDesign(context, ref, p, design),
+              SettingsGroup(
+                children: [
+                  ListTile(
+                    leading: const IconBadge(Icons.grid_view_rounded, size: 40),
+                    title: Text(design.summary),
+                    subtitle: const Text('Toca para cambiar tratamientos, repeticiones o testigo'),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: () => _editDesign(context, ref, p, design),
+                  ),
+                ],
               ),
               const SectionHeader('Tratamientos'),
-              for (final t in treatments)
-                ListTile(
-                  leading: CircleAvatar(child: Text(t.code)),
-                  title: t.description.isEmpty
-                      ? Text('Sin descripción', style: TextStyle(color: Theme.of(context).colorScheme.outline))
-                      : Text(t.description),
-                  subtitle: Text(t.isControl ? 'Testigo' : 'Toca para describir (producto, dosis…)'),
-                  trailing: const Icon(Icons.edit_note),
-                  onTap: () => _describe(context, ref, t),
-                ),
-            ],
-            SectionHeader('Unidades (${units.length})'),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              SettingsGroup(
                 children: [
-                  if (kind == ProjectKind.varietyTrial)
-                    FilledButton.tonalIcon(
-                      onPressed: () => _addVarieties(context, ref, p),
-                      icon: const Icon(Icons.playlist_add),
-                      label: const Text('Agregar variedades'),
-                    ),
-                  if (kind == ProjectKind.farm)
-                    OutlinedButton.icon(
-                      onPressed: () => showUnitForm(context, project: p),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Una unidad'),
+                  for (final t in treatments)
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: t.isControl
+                            ? Theme.of(context).colorScheme.surfaceContainerHighest
+                            : Theme.of(context).colorScheme.tertiaryContainer,
+                        child: Text(t.code),
+                      ),
+                      title: t.description.isEmpty
+                          ? Text('Sin descripción', style: TextStyle(color: Theme.of(context).colorScheme.outline))
+                          : Text(t.description),
+                      subtitle: Text(
+                        t.isControl
+                            ? 'Testigo'
+                            : t.description.isEmpty
+                            ? 'Toca para describir (producto, dosis…)'
+                            : 'Toca para editar',
+                      ),
+                      trailing: const Icon(Icons.edit_note),
+                      onTap: () => _describe(context, ref, t),
                     ),
                 ],
               ),
-            ),
+            ],
+            SectionHeader('Unidades (${units.length})'),
+            if (kind != ProjectKind.treatmentTrial)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: kind == ProjectKind.varietyTrial
+                    ? FilledButton.tonalIcon(
+                        onPressed: () => _addVarieties(context, ref, p),
+                        icon: const Icon(Icons.playlist_add),
+                        label: const Text('Agregar variedades'),
+                      )
+                    : OutlinedButton.icon(
+                        onPressed: () => showUnitForm(context, project: p),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Una unidad'),
+                      ),
+              ),
             if (units.isEmpty)
               const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Aún no hay unidades. Agrégalas con los botones de arriba.'),
-              ),
-            for (final u in units)
-              ListTile(
-                dense: true,
-                title: Text(u.label),
-                subtitle: _unitDetails(kind, u, varietyName, description),
-                trailing: PopupMenuButton<String>(
-                  tooltip: 'Opciones de ${u.label}',
-                  onSelected: (v) async {
-                    if (v == 'edit') await showUnitForm(context, project: p, unit: u);
-                    if (v == 'delete' && context.mounted) {
-                      final ok = await confirm(
-                        context,
-                        title: 'Eliminar unidad',
-                        message: '«${u.label}» dejará de aparecer. Sus registros anteriores se conservan.',
-                      );
-                      if (ok) await ref.read(projectRepositoryProvider).deleteUnit(u.id);
-                    }
-                  },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Editar')),
-                    PopupMenuItem(value: 'delete', child: Text('Eliminar')),
-                  ],
-                ),
+                padding: EdgeInsets.fromLTRB(28, 8, 24, 8),
+                child: Text('Aún no hay unidades. Agrégalas con el botón de arriba.'),
+              )
+            else
+              SettingsGroup(
+                children: [
+                  for (final u in units)
+                    ListTile(
+                      dense: true,
+                      title: Text(u.label, style: Theme.of(context).textTheme.titleSmall),
+                      subtitle: _unitDetails(kind, u, varietyName, description),
+                      trailing: PopupMenuButton<String>(
+                        tooltip: 'Opciones de ${u.label}',
+                        onSelected: (v) async {
+                          if (v == 'edit') await showUnitForm(context, project: p, unit: u);
+                          if (v == 'delete' && context.mounted) {
+                            final ok = await confirm(
+                              context,
+                              title: 'Eliminar unidad',
+                              message: '«${u.label}» dejará de aparecer. Sus registros anteriores se conservan.',
+                            );
+                            if (ok) await ref.read(projectRepositoryProvider).deleteUnit(u.id);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Editar')),
+                          PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             const SectionHeader('Estado'),
-            SwitchListTile(
-              secondary: const Icon(Icons.archive_outlined),
-              title: const Text('Proyecto archivado'),
-              subtitle: const Text('Los archivados quedan al final de la lista y conservan todos sus datos.'),
-              value: p.archived,
-              onChanged: (v) => ref.read(projectRepositoryProvider).setProjectArchived(p.id, v),
+            SettingsGroup(
+              children: [
+                SwitchListTile(
+                  secondary: const IconBadge(Icons.archive_outlined, size: 40),
+                  title: const Text('Proyecto archivado'),
+                  subtitle: const Text('Los archivados quedan al final de la lista y conservan todos sus datos.'),
+                  value: p.archived,
+                  onChanged: (v) => ref.read(projectRepositoryProvider).setProjectArchived(p.id, v),
+                ),
+              ],
             ),
             if (justCreated)
               Padding(

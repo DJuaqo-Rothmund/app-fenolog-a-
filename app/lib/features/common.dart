@@ -117,10 +117,11 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+    padding: const EdgeInsets.fromLTRB(28, 20, 24, 8),
     child: Text(
       text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+      style: Theme.of(context).textTheme.labelLarge
+          ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700),
     ),
   );
 }
@@ -175,5 +176,45 @@ class _PromptDialogState extends State<_PromptDialog> {
       TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
       FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: const Text('Guardar')),
     ],
+  );
+}
+
+/// Ícono dentro de un recuadro redondeado de color suave.
+class IconBadge extends StatelessWidget {
+  const IconBadge(this.icon, {super.key, this.size = 44, this.background, this.foreground});
+  final IconData icon;
+  final double size;
+  final Color? background;
+  final Color? foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: background ?? scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(size * 0.32),
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, size: size * 0.52, color: foreground ?? scheme.onPrimaryContainer),
+    );
+  }
+}
+
+/// Grupo de opciones dentro de una tarjeta, separadas por líneas finas.
+class SettingsGroup extends StatelessWidget {
+  const SettingsGroup({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    child: Column(
+      children: [
+        for (final (i, c) in children.indexed) ...[if (i > 0) const Divider(indent: 72, endIndent: 16), c],
+      ],
+    ),
   );
 }
