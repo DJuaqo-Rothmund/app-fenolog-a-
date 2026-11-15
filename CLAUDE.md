@@ -66,10 +66,10 @@ decisiones, guía de desarrollo).
 
 ## Pendientes y preguntas abiertas
 
-1. **Llave de firma del APK**: llave generada el 14-nov-2026 y entregada al dueño (fuera
-   del repositorio) para cargar los 4 secretos `ANDROID_KEYSTORE_*` en GitHub. Confirmar
-   que estén cargados (la compilación muestra el aviso «APK sin llave propia» si faltan).
-   Pasos en `docs/05-desarrollo.md`.
+1. **Llave de firma del APK: resuelta.** Secretos `ANDROID_KEYSTORE_*` cargados en GitHub
+   el 15-nov-2026; desde `frambitacora-apk-15` los APK salen firmados con la llave propia y
+   se instalan encima de la versión anterior. La llave la guarda el dueño (nunca en el
+   repositorio). Si la compilación muestra «APK sin llave propia», faltan los secretos.
 2. **Historial de `main`**: el dueño pidió que no queden rastros de documentos de
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
