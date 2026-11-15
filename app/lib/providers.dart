@@ -94,6 +94,10 @@ final weekRowsProvider = StreamProvider.family<List<UnitWeekRow>, WeekKey>(
       ref.watch(samplingRepositoryProvider).watchWeek(projectId: k.projectId, seasonId: k.seasonId, week: k.week),
 );
 
+final seasonGridProvider = StreamProvider.family<SeasonGrid, ({String projectId, String seasonId})>(
+  (ref, k) => ref.watch(samplingRepositoryProvider).watchSeasonGrid(projectId: k.projectId, seasonId: k.seasonId),
+);
+
 final weekNotSampledProvider = StreamProvider.family<bool, ({String seasonId, int week})>(
   (ref, k) => ref.watch(samplingRepositoryProvider).watchWeekNotSampled(k.seasonId, k.week),
 );

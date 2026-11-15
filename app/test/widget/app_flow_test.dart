@@ -291,4 +291,88 @@ void main() {
 
     await finish(tester);
   });
+
+  testWidgets('avance de la temporada: muestra el error, abre el registro y se actualiza al corregir', (tester) async {
+    phoneScreen(tester);
+    late String fixId, rightStage;
+    await tester.runAsync(() async {
+      final crop = await db.select(db.crops).getSingle();
+      final scale = await db.select(db.phenoScales).getSingle();
+      final stages = await db.select(db.phenoStages).get();
+      String stage(String code) => stages.firstWhere((s) => s.code == code).id;
+      await db
+          .into(db.projects)
+          .insert(
+            ProjectsCompanion.insert(
+              id: const Value('p1'),
+              cropId: crop.id,
+              scaleId: scale.id,
+              kind: ProjectKind.varietyTrial.name,
+              name: 'Ensayo',
+            ),
+          );
+      await db
+          .into(db.seasons)
+          .insert(
+            SeasonsCompanion.insert(
+              id: const Value('s1'),
+              projectId: 'p1',
+              name: '2026-27',
+              week1Start: DateTime.utc(2026, 9, 7),
+            ),
+          );
+      await db.into(db.units).insert(UnitsCompanion.insert(id: const Value('u1'), projectId: 'p1', label: 'Heritage'));
+      Future<String> obs(int week, String code) async {
+        final o = await db
+            .into(db.observations)
+            .insertReturning(
+              ObservationsCompanion.insert(seasonId: 's1', unitId: 'u1', weekNumber: week, stageId: Value(stage(code))),
+            );
+        await db
+            .into(db.photos)
+            .insert(
+              PhotosCompanion.insert(
+                observationId: o.id,
+                kind: 'general',
+                seq: 1,
+                fileName: 'f$week.jpg',
+                localPath: 'fotos/f$week.jpg',
+                takenAt: DateTime(2026, 10, 1),
+              ),
+            );
+        return o.id;
+      }
+
+      await obs(6, '55');
+      fixId = await obs(7, '51');
+      rightStage = stage('57');
+    });
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.text('Ensayo'));
+    await settle(tester);
+    await tester.tap(find.byTooltip('Avance de la temporada'));
+    await settle(tester);
+
+    expect(find.text('1 posible error para revisar'), findsOneWidget);
+    expect(find.text('Heritage · S7: el estado 51 es anterior al de S6 (55)'), findsOneWidget);
+
+    // Desde la alerta se abre el registro de esa semana.
+    await tapVisible(tester, find.text('Heritage · S7: el estado 51 es anterior al de S6 (55)'));
+    await settle(tester);
+    expect(find.text('Semana 7 · desde el lun 19 de oct'), findsOneWidget);
+    tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+    await settle(tester);
+
+    // Al corregir el estado, la revisión se actualiza sola.
+    await tester.runAsync(
+      () => (db.update(
+        db.observations,
+      )..where((o) => o.id.equals(fixId))).write(ObservationsCompanion(stageId: Value(rightStage))),
+    );
+    await settle(tester);
+    expect(find.text('Sin posibles errores: lista para el informe'), findsOneWidget);
+
+    await finish(tester);
+  });
 }

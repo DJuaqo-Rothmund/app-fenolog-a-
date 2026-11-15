@@ -10,6 +10,7 @@ import '../../providers.dart';
 import '../../reports/pdf_reports.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../review/season_review_screen.dart';
 
 /// Cómo se muestra un PDF ya armado (se reemplaza en las pruebas, donde no hay
 /// visor de PDF del sistema).
@@ -121,6 +122,8 @@ class _ReportsSheetState extends ConsumerState<_ReportsSheet> {
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
               child: Text('Informes en PDF', style: text.titleLarge),
             ),
+            _ReviewTile(project: widget.project, season: widget.season),
+            const SizedBox(height: 8),
             SettingsGroup(
               children: [
                 ListTile(
@@ -177,6 +180,51 @@ class _ReportsSheetState extends ConsumerState<_ReportsSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Invita a revisar la temporada (y corregir) antes de generar el informe.
+class _ReviewTile extends ConsumerWidget {
+  const _ReviewTile({required this.project, required this.season});
+  final Project project;
+  final Season season;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final alerts = ref.watch(seasonGridProvider((projectId: project.id, seasonId: season.id))).value?.alerts.length;
+    final scheme = Theme.of(context).colorScheme;
+    final hasAlerts = (alerts ?? 0) > 0;
+    return SettingsGroup(
+      children: [
+        ListTile(
+          leading: IconBadge.app(
+            AppIcons.season,
+            size: 40,
+            background: hasAlerts ? scheme.errorContainer : null,
+            foreground: hasAlerts ? scheme.onErrorContainer : null,
+          ),
+          title: const Text('Revisar la temporada'),
+          subtitle: Text(
+            alerts == null
+                ? 'Avance de cada unidad, semana a semana'
+                : hasAlerts
+                ? (alerts == 1
+                      ? '1 posible error: corrígelo antes del informe'
+                      : '$alerts posibles errores: corrígelos antes del informe')
+                : 'Sin posibles errores',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            final navigator = Navigator.of(context)..pop();
+            navigator.push(
+              MaterialPageRoute<void>(
+                builder: (_) => SeasonReviewScreen(project: project, season: season),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

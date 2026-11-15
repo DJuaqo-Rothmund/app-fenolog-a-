@@ -178,7 +178,18 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
                     leading: StageBadge(code: stage?.code, color: stage?.color, size: 48),
                     title: Text(stage?.name ?? 'Sin estado'),
                     subtitle: Text(stage?.description ?? 'Toca para elegir el estado desde la escala'),
-                    trailing: const Icon(Icons.edit),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (stage != null && obs != null)
+                          IconButton(
+                            tooltip: 'Quitar estado',
+                            icon: const Icon(Icons.backspace_outlined),
+                            onPressed: () => ref.read(samplingRepositoryProvider).setStage(obs.id, null),
+                          ),
+                        const Icon(Icons.edit),
+                      ],
+                    ),
                     onTap: () => _pickStage(stage?.id),
                   ),
                 ),

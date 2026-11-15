@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../domain/completeness.dart';
 import '../domain/photo_naming.dart';
+import '../domain/season_review.dart';
 import 'database.dart';
 import 'photo_store.dart';
 
@@ -23,6 +24,21 @@ class UnitWeekRow {
   final int photoCount;
 
   bool get isComplete => isObservationComplete(hasStage: stageCode != null, photoCount: photoCount);
+}
+
+/// Toda la temporada de un proyecto: unidades, registros por semana y semanas
+/// no muestreadas.
+class SeasonGrid {
+  const SeasonGrid({required this.units, required this.cells, required this.notSampled});
+  final List<Unit> units;
+
+  /// unidad → semana → registro.
+  final Map<String, Map<int, GridCell>> cells;
+  final Set<int> notSampled;
+
+  int get lastWeekWithData => cells.values.expand((w) => w.keys).fold(0, (max, w) => w > max ? w : max);
+
+  List<GridAlert> get alerts => findAlerts(cells, {for (final u in units) u.id: u.label}, notSampled: notSampled);
 }
 
 /// Registros semanales (unidad × semana), fotos y estado de cada semana.
@@ -61,6 +77,51 @@ ORDER BY u.sort_order, u.label
               ),
           ],
         );
+  }
+
+  /// Estado de cada unidad en cada semana de la temporada (se actualiza solo).
+  Stream<SeasonGrid> watchSeasonGrid({required String projectId, required String seasonId}) {
+    return db
+        .customSelect(
+          '''
+SELECT o.id, o.unit_id, o.week_number, s.code, s.name, s.color, s.sort_order,
+  (SELECT COUNT(*) FROM photos p WHERE p.observation_id = o.id AND p.deleted_at IS NULL) AS photo_count
+FROM observations o
+JOIN units u ON u.id = o.unit_id
+LEFT JOIN pheno_stages s ON s.id = o.stage_id
+WHERE o.season_id = ?1 AND u.project_id = ?2 AND o.deleted_at IS NULL''',
+          variables: [Variable.withString(seasonId), Variable.withString(projectId)],
+          readsFrom: {db.units, db.observations, db.phenoStages, db.photos, db.weekStatuses},
+        )
+        .watch()
+        .asyncMap((rows) async {
+          final units =
+              await (db.select(db.units)
+                    ..where((u) => u.projectId.equals(projectId) & u.deletedAt.isNull())
+                    ..orderBy([(u) => OrderingTerm(expression: u.sortOrder), (u) => OrderingTerm(expression: u.label)]))
+                  .get();
+          final active = {for (final u in units) u.id};
+          final cells = <String, Map<int, GridCell>>{};
+          for (final r in rows) {
+            final unit = r.read<String>('unit_id');
+            if (!active.contains(unit)) continue;
+            final cell = GridCell(
+              observationId: r.read<String>('id'),
+              stageCode: r.readNullable<String>('code'),
+              stageName: r.readNullable<String>('name'),
+              stageColor: r.readNullable<int>('color'),
+              stageOrder: r.readNullable<int>('sort_order'),
+              photoCount: r.read<int>('photo_count'),
+            );
+            // Un registro vacío (sin estado, fotos ni notas) no cuenta.
+            if (!cell.hasStage && cell.photoCount == 0) continue;
+            cells.putIfAbsent(unit, () => {})[r.read<int>('week_number')] = cell;
+          }
+          final statuses = await (db.select(
+            db.weekStatuses,
+          )..where((w) => w.seasonId.equals(seasonId) & w.notSampled.equals(true) & w.deletedAt.isNull())).get();
+          return SeasonGrid(units: units, cells: cells, notSampled: {for (final s in statuses) s.weekNumber});
+        });
   }
 
   Stream<bool> watchWeekNotSampled(String seasonId, int week) =>

@@ -10,6 +10,7 @@ import 'package:frambitacora/data/sampling_repository.dart';
 import 'package:frambitacora/domain/crop_definition.dart';
 import 'package:frambitacora/domain/photo_naming.dart';
 import 'package:frambitacora/domain/project_kind.dart';
+import 'package:frambitacora/domain/season_review.dart';
 
 import '../helpers.dart';
 
@@ -279,6 +280,39 @@ void main() {
       await sampling.setWeekNotSampled(p.seasonId, 5, false);
       expect(await sampling.watchWeekNotSampled(p.seasonId, 5).first, isFalse);
       expect(await db.select(db.weekStatuses).get(), hasLength(1));
+    });
+  });
+
+  group('revisión de la temporada', () {
+    test('la grilla trae cada registro con estado y fotos, y marca retrocesos', () async {
+      final p = await newProject();
+      final a = await projects.createUnit(projectId: p.projectId, label: 'Heritage');
+      final b = await projects.createUnit(projectId: p.projectId, label: 'Tulameen');
+      final stages = await catalog.watchStages(scale.id).first;
+      final late = stages.firstWhere((s) => s.code == '55');
+      final early = stages.firstWhere((s) => s.code == '51');
+
+      final o1 = await sampling.ensureObservation(p.seasonId, a, 6);
+      await sampling.setStage(o1, late.id);
+      await sampling.addPhoto(observationId: o1, kind: PhotoKind.general, sourcePath: (await sourceImage()).path);
+      final o2 = await sampling.ensureObservation(p.seasonId, a, 7);
+      await sampling.setStage(o2, early.id);
+      await sampling.addPhoto(observationId: o2, kind: PhotoKind.general, sourcePath: (await sourceImage()).path);
+      await sampling.ensureObservation(p.seasonId, b, 7); // registro vacío: no cuenta
+
+      var grid = await sampling.watchSeasonGrid(projectId: p.projectId, seasonId: p.seasonId).first;
+      expect(grid.units.map((u) => u.label), ['Heritage', 'Tulameen']);
+      expect(grid.cells[a]!.keys, [6, 7]);
+      expect(grid.cells[a]![7]!.stageCode, '51');
+      expect(grid.cells[a]![7]!.photoCount, 1);
+      expect(grid.cells.containsKey(b), isFalse);
+      expect(grid.lastWeekWithData, 7);
+      expect(grid.alerts.single.kind, AlertKind.regression);
+
+      // Al corregir el estado, la alerta desaparece.
+      await sampling.setStage(o2, late.id);
+      grid = await sampling.watchSeasonGrid(projectId: p.projectId, seasonId: p.seasonId).first;
+      expect(grid.alerts, isEmpty);
     });
   });
 }

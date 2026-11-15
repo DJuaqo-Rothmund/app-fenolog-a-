@@ -59,5 +59,6 @@ completar la semana (hoy es un mensaje con ícono).
 | Avance | Contenido | Estado |
 |---|---|---|
 | 3.1 | Informe semanal PDF (avance por unidad + fotos general y detalle) y matriz de la temporada; vista previa, compartir e imprimir; hoja Carta | ✅ Hecho |
+| 3.1b | Avance de la temporada en la app (grilla con colores), alertas de posibles errores y corrección directa antes del informe | ✅ Hecho |
 | 3.2 | Ficha por variedad con curva fenológica | Pendiente |
 | 3.3 | Mediciones en los informes (cuando exista el avance 2.2) y comparación de tratamientos | Pendiente |

@@ -104,6 +104,20 @@ Las fotos se reducen a 900 px y JPEG calidad 72 (un informe semanal con fotos pe
 MB). Fuente Roboto incluida (`assets/fonts/`) para tildes y ñ. La vista previa usa el
 visor del paquete `printing`; en las pruebas se reemplaza con `pdfViewerProvider`.
 
+## Avance de la temporada (revisión antes del informe)
+
+En cada proyecto, botón **Avance de la temporada** (también desde **Informes → Revisar la
+temporada**): grilla unidades × semanas con el color y código de cada estado. Tocar una
+celda abre ese registro para corregirlo; los cambios se ven al instante aquí y en los
+informes. Alertas automáticas (`lib/domain/season_review.dart`):
+
+- **Retrocede**: el estado es anterior (en la escala) al de la última semana registrada.
+- **Sin foto**: tiene estado pero ninguna foto.
+- **Sin estado**: tiene fotos pero no se eligió el estado.
+
+Las semanas no muestreadas no generan alertas. En el registro, «Quitar estado» borra un
+estado puesto por error.
+
 ## Configuración de proyectos
 
 - **Ensayo de variedades:** «Agregar variedades» muestra el catálogo con casillas (y botón
