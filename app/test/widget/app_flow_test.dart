@@ -375,4 +375,46 @@ void main() {
 
     await finish(tester);
   });
+
+  testWidgets('guía de fotos: desde el registro abre la pestaña del tipo de foto', (tester) async {
+    phoneScreen(tester);
+    await tester.runAsync(() async {
+      final crop = await db.select(db.crops).getSingle();
+      final scale = await db.select(db.phenoScales).getSingle();
+      await db
+          .into(db.projects)
+          .insert(
+            ProjectsCompanion.insert(
+              id: const Value('p1'),
+              cropId: crop.id,
+              scaleId: scale.id,
+              kind: ProjectKind.varietyTrial.name,
+              name: 'Ensayo',
+            ),
+          );
+      await db
+          .into(db.seasons)
+          .insert(SeasonsCompanion.insert(projectId: 'p1', name: '2026-27', week1Start: DateTime.utc(2026, 9, 7)));
+      await db.into(db.units).insert(UnitsCompanion.insert(projectId: 'p1', label: 'Heritage'));
+    });
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.text('Ensayo'));
+    await settle(tester);
+    await tester.tap(find.text('Heritage'));
+    await settle(tester);
+
+    // La segunda ayuda es la de las fotos de detalle.
+    await tapVisible(tester, find.byTooltip('Cómo tomar esta foto').at(1));
+    await settle(tester);
+    expect(find.text('Guía de fotos'), findsOneWidget);
+    expect(find.text('Foto de detalle: el estado fenológico'), findsOneWidget);
+    expect(find.text('A 10–20 cm y enfocado'), findsOneWidget);
+
+    await tester.tap(find.text('General'));
+    await settle(tester);
+    expect(find.text('Foto general: la canopia'), findsOneWidget);
+
+    await finish(tester);
+  });
 }

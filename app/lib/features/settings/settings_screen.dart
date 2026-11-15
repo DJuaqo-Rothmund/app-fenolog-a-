@@ -7,6 +7,7 @@ import '../../providers.dart';
 import '../backup/backup_screen.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../help/photo_guide_screen.dart';
 import '../projects/project_form_screen.dart';
 import '../projects/projects_screen.dart' show kindStyle;
 import '../scale/scale_screen.dart';
@@ -86,6 +87,18 @@ class SettingsScreen extends ConsumerWidget {
                     );
                   },
                 ),
+            ],
+          ),
+          const SectionHeader('Ayuda'),
+          SettingsGroup(
+            children: [
+              ListTile(
+                leading: const IconBadge.app(AppIcons.camera, size: 40),
+                title: const Text('Guía de fotos'),
+                subtitle: const Text('Cómo tomar la foto general (canopia) y la de detalle'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _push(context, const PhotoGuideScreen()),
+              ),
             ],
           ),
           const SectionHeader('Datos'),

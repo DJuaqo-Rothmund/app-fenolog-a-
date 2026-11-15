@@ -77,7 +77,10 @@ decisiones, guía de desarrollo).
 - **Avance de la temporada** (botón en cada proyecto y en Informes → «Revisar la
   temporada»): grilla unidades × semanas en la app, alertas (retrocede, sin foto, sin
   estado) y toque en una celda para corregir ese registro antes del informe. «Quitar
-  estado» en el registro. 75 pruebas pasan.
+  estado» en el registro.
+- **Guía de fotos** en la app (botón «?» en cada cajita de fotos y Configuración → Ayuda):
+  qué es y cómo tomar la foto general (canopia), la de detalle (por macroestadio) y las
+  adicionales. 77 pruebas pasan.
 
 ## Pendientes y preguntas abiertas
 

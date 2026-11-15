@@ -118,6 +118,16 @@ informes. Alertas automáticas (`lib/domain/season_review.dart`):
 Las semanas no muestreadas no generan alertas. En el registro, «Quitar estado» borra un
 estado puesto por error.
 
+## Guía de fotos
+
+`lib/features/help/photo_guide_screen.dart`, con tres pestañas: **General** (canopia: a
+2–3 m, de frente a la hilera, mismo punto cada semana, sol a la espalda, planta
+representativa), **Detalle** (a 10–20 cm, enfocado, fondo limpio, estado de la mayoría y
+qué órgano fotografiar en cada macroestadio de la escala) y **Adicionales** (plagas,
+daños, referencias). Se abre con el «?» de cada cajita de fotos del registro (en la
+pestaña que corresponde) y desde Configuración → Ayuda. Una prueba verifica que la lista
+de etapas coincida con los macroestadios del JSON del frambueso.
+
 ## Configuración de proyectos
 
 - **Ensayo de variedades:** «Agregar variedades» muestra el catálogo con casillas (y botón

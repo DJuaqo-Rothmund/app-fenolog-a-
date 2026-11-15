@@ -11,6 +11,7 @@ import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../help/photo_guide_screen.dart';
 import '../scale/scale_screen.dart';
 import 'device_services.dart';
 
@@ -282,10 +283,13 @@ class _StatusBanner extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child, this.icon});
+  const _Section({required this.title, required this.child, this.icon, this.action});
   final String title;
   final Widget child;
   final AppIcons? icon;
+
+  /// Botón opcional a la derecha del título (p. ej. la ayuda).
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -304,6 +308,7 @@ class _Section extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+                ?action,
               ],
             ),
           ),
@@ -339,6 +344,13 @@ class _PhotoSection extends ConsumerWidget {
     final photoStore = ref.watch(photoStoreProvider);
     final scheme = Theme.of(context).colorScheme;
     return _Section(
+      action: IconButton(
+        tooltip: 'Cómo tomar esta foto',
+        visualDensity: VisualDensity.compact,
+        icon: const Icon(Icons.help_outline),
+        onPressed: () =>
+            Navigator.push(context, MaterialPageRoute<void>(builder: (_) => PhotoGuideScreen(initial: kind))),
+      ),
       icon: switch (kind) {
         PhotoKind.general => AppIcons.camera,
         PhotoKind.detail => AppIcons.variety,
