@@ -13,4 +13,16 @@ void main() {
     ];
     expect(detailByStage.map((s) => (code: s.code, name: s.stage)), macros);
   });
+
+  test('cada ilustración de la guía tiene su archivo', () {
+    final names = [
+      'general_scene',
+      'detail_scene',
+      for (final c in [...generalCompare, ...detailCompare]) ...[c.ok, c.bad],
+      for (final s in detailByStage) 'stage_${s.code}',
+    ];
+    for (final n in names) {
+      expect(File('assets/guide/$n.svg').existsSync(), isTrue, reason: n);
+    }
+  });
 }

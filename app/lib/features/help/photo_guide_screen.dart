@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/photo_naming.dart';
 import '../app_icons.dart';
@@ -208,16 +209,24 @@ class _GeneralTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.only(bottom: 32),
-    children: const [
-      _Intro(
+    children: [
+      const _Intro(
         icon: AppIcons.camera,
         title: 'Foto general: la canopia',
         text:
             'Muestra la planta o el tramo de hilera completo: vigor, cantidad de follaje y avance general. '
             'Sirve para ver cómo crece la canopia a lo largo de la temporada.',
       ),
-      SectionHeader('Cómo tomarla'),
-      _Tips(generalTips),
+      const _Scene(
+        'general_scene',
+        'A 2–3 m, de frente a la hilera, con el sol a la espalda y la estaca como referencia.',
+        measure: '2–3 m',
+        measureAt: Alignment(-0.13, 0.7),
+      ),
+      const SectionHeader('Bien y evitar'),
+      for (final c in generalCompare) _CompareRow(c),
+      const SectionHeader('Cómo tomarla'),
+      const _Tips(generalTips),
     ],
   );
 }
@@ -236,6 +245,14 @@ class _DetailTab extends StatelessWidget {
             'Una foto de cerca del órgano que define el estado: yemas, brotes, laterales, botones florales, '
             'flores o frutos. Es la prueba del estado que registraste.',
       ),
+      const _Scene(
+        'detail_scene',
+        'A 10–20 cm, enfocando el órgano, con la mano detrás como fondo.',
+        measure: '10–20 cm',
+        measureAt: Alignment(-0.24, 0.7),
+      ),
+      const SectionHeader('Bien y evitar'),
+      for (final c in detailCompare) _CompareRow(c),
       const SectionHeader('Cómo tomarla'),
       const _Tips(detailTips),
       const SectionHeader('Qué fotografiar en cada etapa'),
@@ -243,9 +260,32 @@ class _DetailTab extends StatelessWidget {
         children: [
           for (final s in detailByStage)
             ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(s.code),
+              contentPadding: const EdgeInsets.fromLTRB(12, 6, 16, 6),
+              leading: SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    GuideImage('stage_${s.code}', width: 64, height: 64),
+                    Positioned(
+                      left: -4,
+                      top: -4,
+                      child: CircleAvatar(
+                        radius: 11,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          s.code,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               title: Text(s.stage),
               subtitle: Text(s.what),
@@ -272,4 +312,141 @@ class _ExtraTab extends StatelessWidget {
       _Tips(extraTips),
     ],
   );
+}
+
+/// Ilustración de la guía (`assets/guide/<name>.svg`).
+class GuideImage extends StatelessWidget {
+  const GuideImage(this.name, {super.key, this.width, this.height});
+  final String name;
+  final double? width;
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) =>
+      SvgPicture.asset('assets/guide/$name.svg', width: width, height: height, excludeFromSemantics: true);
+}
+
+/// Escena grande que explica cómo tomar la foto.
+class _Scene extends StatelessWidget {
+  const _Scene(this.name, this.caption, {required this.measure, required this.measureAt});
+  final String name;
+  final String caption;
+
+  /// Distancia que se escribe sobre la cota del dibujo (p. ej. «2–3 m»).
+  final String measure;
+  final Alignment measureAt;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+    child: Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: AspectRatio(
+            aspectRatio: 340 / 210,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GuideImage(name),
+                Align(
+                  alignment: measureAt,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    child: Text(
+                      measure,
+                      style: const TextStyle(color: Color(0xFF2F6B3A), fontWeight: FontWeight.w700, fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(caption, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    ),
+  );
+}
+
+/// Una comparación: ejemplo bien hecho al lado de uno a evitar.
+typedef GuideCompare = ({String ok, String okText, String bad, String badText});
+
+const generalCompare = <GuideCompare>[
+  (ok: 'frame_ok', okText: 'Planta completa, del suelo a la punta', bad: 'frame_bad', badText: 'Cortada o muy cerca'),
+  (ok: 'light_ok', okText: 'Sol a la espalda', bad: 'light_bad', badText: 'Contraluz: planta oscura'),
+];
+
+const detailCompare = <GuideCompare>[
+  (ok: 'organ_ok', okText: 'Grande, nítido y al centro', bad: 'organ_bad', badText: 'Pequeño y perdido entre hojas'),
+  (
+    ok: 'background_ok',
+    okText: 'Mano o cartulina de fondo',
+    bad: 'background_bad',
+    badText: 'Fondo de follaje revuelto',
+  ),
+];
+
+class _CompareRow extends StatelessWidget {
+  const _CompareRow(this.c);
+  final GuideCompare c;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _Example(image: c.ok, text: c.okText, good: true),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _Example(image: c.bad, text: c.badText, good: false),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Example extends StatelessWidget {
+  const _Example({required this.image, required this.text, required this.good});
+  final String image;
+  final String text;
+  final bool good;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = good ? scheme.primary : scheme.error;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            AspectRatio(aspectRatio: 160 / 120, child: GuideImage(image)),
+            Positioned(
+              right: -4,
+              top: -4,
+              child: CircleAvatar(
+                radius: 13,
+                backgroundColor: color,
+                child: Icon(
+                  good ? Icons.check : Icons.close,
+                  size: 16,
+                  color: good ? scheme.onPrimary : scheme.onError,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(good ? 'Bien' : 'Evitar', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color)),
+        Text(text, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
 }

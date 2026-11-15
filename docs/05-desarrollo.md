@@ -124,7 +124,10 @@ estado puesto por error.
 2–3 m, de frente a la hilera, mismo punto cada semana, sol a la espalda, planta
 representativa), **Detalle** (a 10–20 cm, enfocado, fondo limpio, estado de la mayoría y
 qué órgano fotografiar en cada macroestadio de la escala) y **Adicionales** (plagas,
-daños, referencias). Se abre con el «?» de cada cajita de fotos del registro (en la
+daños, referencias). Ilustrada con dibujos originales en `app/assets/guide/` (escenas de
+cómo tomar cada foto, comparaciones «Bien / Evitar» y un dibujo por macroestadio),
+generados con `python3 tool/guide_svgs.py`. Los SVG no llevan texto (el lector de SVG de
+Flutter no lo dibuja): las medidas se escriben encima desde la app. Se abre con el «?» de cada cajita de fotos del registro (en la
 pestaña que corresponde) y desde Configuración → Ayuda. Una prueba verifica que la lista
 de etapas coincida con los macroestadios del JSON del frambueso.
 

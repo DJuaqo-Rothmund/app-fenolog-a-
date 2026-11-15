@@ -409,7 +409,7 @@ void main() {
     await settle(tester);
     expect(find.text('Guía de fotos'), findsOneWidget);
     expect(find.text('Foto de detalle: el estado fenológico'), findsOneWidget);
-    expect(find.text('A 10–20 cm y enfocado'), findsOneWidget);
+    expect(find.text('A 10–20 cm, enfocando el órgano, con la mano detrás como fondo.'), findsOneWidget);
 
     await tester.tap(find.text('General'));
     await settle(tester);

@@ -80,7 +80,9 @@ decisiones, guía de desarrollo).
   estado» en el registro.
 - **Guía de fotos** en la app (botón «?» en cada cajita de fotos y Configuración → Ayuda):
   qué es y cómo tomar la foto general (canopia), la de detalle (por macroestadio) y las
-  adicionales. 77 pruebas pasan.
+  adicionales; ilustrada (escenas, «Bien / Evitar» y un dibujo por etapa en
+  `app/assets/guide/`, generados con `tool/guide_svgs.py`; sin texto dentro de los SVG).
+  78 pruebas pasan.
 
 ## Pendientes y preguntas abiertas
 
