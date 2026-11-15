@@ -37,6 +37,9 @@ y publica el APK como *artifact*.
 | `lib/data/backup_service.dart` | Copia de seguridad completa (`.zip` con `manifest.json`, la base y `fotos/`) y restauración. |
 | `lib/features/backup/` | Pantalla «Copia de seguridad» (desde Configuración). |
 | `lib/features/settings/` | **Configuración** (engranaje en la pantalla de inicio): variedades, escala, proyectos, copia de seguridad; y configuración de cada proyecto (nombre, temporada, diseño, tratamientos, unidades, archivo). |
+| `lib/reports/` | Informes PDF: modelos de datos (`report_models.dart`), dibujo del PDF en hoja Carta (`pdf_reports.dart`, se arma en otro isolate) y reducción de fotos (`photo_shrink.dart`). |
+| `lib/data/report_repository.dart` | Reúne los datos del informe semanal y de la matriz desde la base. |
+| `lib/features/reports/reports_screen.dart` | Menú «Informes» del proyecto y vista previa (zoom, compartir, imprimir). |
 | `lib/features/projects/treatment_design.dart` | Diseño del ensayo de tratamientos: n.º de tratamientos, repeticiones y testigo T0. |
 | `lib/features/...` | Pantallas. |
 
@@ -82,6 +85,23 @@ Dibujos originales, en vectores (SVG):
   `AppIcon(AppIcons.camera)`; toman el tamaño y color del entorno.
 - Íconos del teléfono (`android/app/src/main/res/`): `bash tool/generate_launcher_icons.sh`
   los vuelve a generar desde los SVG (requiere Node con Playwright).
+
+## Informes PDF
+
+En cada proyecto, botón **Informes** (arriba a la derecha):
+
+- **Informe semanal** (Carta vertical): encabezado con logo, ensayo, temporada y semana;
+  información general y avance; tabla «Avance fenológico» (semana anterior → esta semana,
+  fotos, notas); un bloque por unidad con sus fotos general y de detalle (1 o 2 por tipo,
+  o sin fotos). Cada bloque queda entero en una página.
+- **Matriz de la temporada** (Carta horizontal): unidades × semanas (desde la 1 hasta la
+  actual o la última con datos), cada celda con el color y código del estadio; en ensayos
+  de tratamientos se agrupa por tratamiento con su descripción; «NM» = no muestreada;
+  leyenda de estadios. Más de 22 semanas se reparten en varias tablas.
+
+Las fotos se reducen a 900 px y JPEG calidad 72 (un informe semanal con fotos pesa pocos
+MB). Fuente Roboto incluida (`assets/fonts/`) para tildes y ñ. La vista previa usa el
+visor del paquete `printing`; en las pruebas se reemplaza con `pdfViewerProvider`.
 
 ## Configuración de proyectos
 

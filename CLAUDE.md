@@ -68,6 +68,13 @@ decisiones, guía de desarrollo).
   (paquete `flutter_svg`, MIT). Ícono del teléfono adaptable + monocromo y pantalla de
   arranque crema con el logo. Regenerar con `bash app/tool/generate_launcher_icons.sh`.
 
+- **Informes PDF (etapa 3.1, adelantada a pedido del dueño):** botón «Informes» en cada
+  proyecto → informe semanal (Carta vertical; avance fenológico semana anterior → esta
+  semana, fotos general + detalle por unidad) y matriz de la temporada (Carta horizontal,
+  unidades × semanas con colores). Vista previa con zoom, compartir e imprimir (paquetes
+  `pdf` y `printing`). Pensado para la jefa del dueño: sencillo, solo temporada e
+  información general del ensayo. 69 pruebas pasan.
+
 ## Pendientes y preguntas abiertas
 
 1. **Llave de firma del APK: resuelta.** Secretos `ANDROID_KEYSTORE_*` cargados en GitHub
@@ -117,4 +124,9 @@ decisiones, guía de desarrollo).
   `TextEditingController` (liberarlos tras `showDialog` rompe la animación de cierre).
 - Pruebas de pantallas: usar `phoneScreen(tester)` (pantalla de teléfono 411 × 891) y
   `tapVisible` para tocar elementos que pueden quedar en el borde o bajo un aviso.
+- PDF: cada bloque que no deba partirse entre páginas va dentro de un `pw.Stack`
+  (las `Column` sí se parten). Llamar `initializeDateFormatting('es')` al inicio de cada
+  función que arma un PDF (corre en otro isolate).
+- No formatear `lib/data/database.g.dart` con `dart format lib` (restaurar con
+  `git checkout` si pasa); formatear con la lista de archivos que excluye `*.g.dart`.
 - Antes de subir: `flutter analyze`, `flutter test` y formato, todo en verde.

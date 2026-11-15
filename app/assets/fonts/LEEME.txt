@@ -1,0 +1,2 @@
+Fuente Roboto (Regular y Bold), la fuente del sistema Android, bajo licencia
+Apache 2.0. Se incluye para que los informes PDF muestren tildes y ñ.

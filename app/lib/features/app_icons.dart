@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Íconos propios de FramBitácora (dibujos originales en `assets/icons/`).
-enum AppIcons { variety, treatment, farm, camera, gallery, scale, backup, notes, gps, settings, week }
+enum AppIcons { variety, treatment, farm, camera, gallery, scale, backup, notes, gps, settings, week, report }
 
 /// Ícono propio. Toma el tamaño y color del entorno (como [Icon]), así se puede
 /// usar en botones, listas y menús sin configuración extra.

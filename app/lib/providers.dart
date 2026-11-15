@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/backup_service.dart';
@@ -5,7 +6,10 @@ import 'data/catalog_repository.dart';
 import 'data/database.dart';
 import 'data/photo_store.dart';
 import 'data/project_repository.dart';
+import 'data/report_repository.dart';
 import 'data/sampling_repository.dart';
+import 'reports/pdf_reports.dart';
+import 'reports/photo_shrink.dart';
 
 /// Se reemplaza en `main.dart` (base real) y en las pruebas (base en memoria).
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('databaseProvider sin configurar'));
@@ -28,6 +32,22 @@ final catalogRepositoryProvider = Provider((ref) => CatalogRepository(ref.watch(
 final projectRepositoryProvider = Provider((ref) => ProjectRepository(ref.watch(databaseProvider)));
 final samplingRepositoryProvider = Provider(
   (ref) => SamplingRepository(ref.watch(databaseProvider), ref.watch(photoStoreProvider)),
+);
+
+final reportRepositoryProvider = Provider(
+  (ref) => ReportRepository(ref.watch(databaseProvider), ref.watch(photoStoreProvider)),
+);
+
+/// Cómo se reducen las fotos para los informes (se reemplaza en las pruebas).
+final photoShrinkerProvider = Provider<PhotoShrinker>((ref) => shrinkPhotoForReport);
+
+/// Fuentes y logo de los informes PDF.
+final reportAssetsProvider = FutureProvider<ReportAssets>(
+  (ref) async => ReportAssets(
+    regular: await rootBundle.load('assets/fonts/Roboto-Regular.ttf'),
+    bold: await rootBundle.load('assets/fonts/Roboto-Bold.ttf'),
+    logoSvg: await rootBundle.loadString('assets/brand/symbol.svg'),
+  ),
 );
 
 /// Fecha de hoy; se reemplaza en las pruebas.

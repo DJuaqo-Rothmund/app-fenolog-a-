@@ -53,3 +53,11 @@ completar la semana (hoy es un mensaje con ícono).
 | 2.4 | Parámetros por variedad y temporada | Pendiente |
 | 2.5 | Exportar la temporada a Excel (.xlsx) | Pendiente |
 | 2.6 | Importar temporadas anteriores desde CSV/ZIP con vista previa | Pendiente |
+
+## Etapa 3 · Informes (adelantada)
+
+| Avance | Contenido | Estado |
+|---|---|---|
+| 3.1 | Informe semanal PDF (avance por unidad + fotos general y detalle) y matriz de la temporada; vista previa, compartir e imprimir; hoja Carta | ✅ Hecho |
+| 3.2 | Ficha por variedad con curva fenológica | Pendiente |
+| 3.3 | Mediciones en los informes (cuando exista el avance 2.2) y comparación de tratamientos | Pendiente |

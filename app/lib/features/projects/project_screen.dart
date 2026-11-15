@@ -9,6 +9,7 @@ import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../reports/reports_screen.dart';
 import '../sampling/observation_screen.dart';
 import '../settings/project_settings_screen.dart';
 import 'unit_form.dart';
@@ -72,6 +73,18 @@ class _ProjectScreenState extends ConsumerState<ProjectScreen> {
         appBar: AppBar(
           title: Text(p.name),
           actions: [
+            if (season.value case final s?)
+              IconButton(
+                tooltip: 'Informes',
+                icon: const AppIcon(AppIcons.report),
+                onPressed: () => showReportsSheet(
+                  context,
+                  project: p,
+                  season: s,
+                  week: _week ?? _currentWeek(s),
+                  currentWeek: _currentWeek(s),
+                ),
+              ),
             IconButton(
               tooltip: 'Configurar proyecto',
               icon: const AppIcon(AppIcons.settings),
