@@ -70,9 +70,13 @@ esquema más nuevo.
 
 Dibujos originales, en vectores (SVG):
 
-- `app/assets/brand/`: logo (frambuesa con cáliz y hoja sobre verde hoja), ícono
-  adaptable de Android (fondo, frambuesa y versión monocroma) e ilustración de pantalla
-  vacía. Se generan con `python3 tool/brand_svgs.py`.
+- `app/assets/brand/symbol.svg`: **logo elegido por el dueño** (frambuesa cuyas drupéolas
+  se convierten en circuitos, con hojas verdes), trazado a vectores desde
+  `app/assets/brand/source/logo_original.jpg` con `python3 tool/trace_logo.py`
+  (requiere `pip install potracer`).
+- `app/assets/brand/`: a partir del símbolo, `python3 tool/brand_svgs.py` arma el logo con
+  recuadro crema, el ícono adaptable de Android (fondo crema, símbolo y versión monocroma)
+  y la ilustración de pantalla vacía.
 - `app/assets/icons/`: íconos de línea de 24 × 24 (variedad, tratamiento, predio, cámara,
   galería, escala, copia, notas, GPS, configuración, semana). En la app se usan con
   `AppIcon(AppIcons.camera)`; toman el tamaño y color del entorno.

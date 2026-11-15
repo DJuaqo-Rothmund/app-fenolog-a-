@@ -28,14 +28,14 @@ class AppIcon extends StatelessWidget {
   }
 }
 
-/// Logo de la app: frambuesa sobre fondo verde hoja.
+/// Logo de la app: frambuesa cuyas drupéolas se convierten en circuitos.
 class AppLogo extends StatelessWidget {
   const AppLogo({super.key, this.size = 48});
   final double size;
 
   @override
   Widget build(BuildContext context) =>
-      SvgPicture.asset('assets/brand/logo.svg', width: size, height: size, semanticsLabel: 'FramBitácora');
+      SvgPicture.asset('assets/brand/symbol.svg', width: size, height: size, semanticsLabel: 'FramBitácora');
 }
 
 /// Ilustración para pantallas vacías: libreta de campo con una frambuesa.
