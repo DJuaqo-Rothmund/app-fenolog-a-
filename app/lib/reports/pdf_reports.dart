@@ -136,24 +136,11 @@ pw.Widget _info(ReportHeader h, List<String> extra) {
   );
 }
 
-pw.Widget _footer(pw.Context ctx, ReportHeader h, String kind) => pw.Container(
+/// Pie de página: solo el número de página, centrado.
+pw.Widget _footer(pw.Context ctx) => pw.Container(
   margin: const pw.EdgeInsets.only(top: 8),
-  padding: const pw.EdgeInsets.only(top: 6),
-  decoration: const pw.BoxDecoration(
-    border: pw.Border(top: pw.BorderSide(color: _line, width: 0.6)),
-  ),
-  child: pw.Row(
-    children: [
-      pw.Expanded(
-        child: pw.Text(
-          'FramBitácora · $kind · ${h.projectName} · Temporada ${h.seasonName} · '
-          'generado el ${_fmt(h.generatedAt, "d 'de' MMMM 'de' y, HH:mm")}',
-          style: const pw.TextStyle(fontSize: 7, color: _grey),
-        ),
-      ),
-      pw.Text('Página ${ctx.pageNumber} de ${ctx.pagesCount}', style: const pw.TextStyle(fontSize: 7, color: _grey)),
-    ],
-  ),
+  alignment: pw.Alignment.center,
+  child: pw.Text('Página ${ctx.pageNumber} de ${ctx.pagesCount}', style: const pw.TextStyle(fontSize: 8, color: _grey)),
 );
 
 pw.Widget _section(String text) => pw.Padding(
@@ -183,7 +170,7 @@ Future<Uint8List> buildWeeklyPdf(WeeklyReport r, ReportAssets a) async {
       theme: await _theme(a),
       pageFormat: PdfPageFormat.letter,
       margin: const pw.EdgeInsets.fromLTRB(36, 32, 36, 28),
-      footer: (ctx) => _footer(ctx, r.header, 'Informe semanal'),
+      footer: _footer,
       build: (ctx) => [
         _title(a, r.header, 'Informe semanal', 'Semana ${r.week}', '$range · semana ${r.isoWeek} del año'),
         pw.SizedBox(height: 12),
@@ -344,7 +331,7 @@ Future<Uint8List> buildMatrixPdf(MatrixReport r, ReportAssets a) async {
       theme: theme,
       pageFormat: PdfPageFormat.letter.landscape,
       margin: const pw.EdgeInsets.fromLTRB(30, 28, 30, 24),
-      footer: (ctx) => _footer(ctx, r.header, 'Matriz fenológica'),
+      footer: _footer,
       build: (ctx) => [
         _title(
           a,

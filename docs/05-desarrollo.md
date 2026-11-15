@@ -94,6 +94,7 @@ En cada proyecto, botón **Informes** (arriba a la derecha):
   información general y avance; tabla «Avance fenológico» (semana anterior → esta semana,
   fotos, notas); un bloque por unidad con sus fotos general y de detalle (1 o 2 por tipo,
   o sin fotos). Cada bloque queda entero en una página.
+- Pie de página (ambos informes): solo «Página N de M», centrado (pedido del dueño).
 - **Matriz de la temporada** (Carta horizontal): unidades × semanas (desde la 1 hasta la
   actual o la última con datos), cada celda con el color y código del estadio; en ensayos
   de tratamientos se agrupa por tratamiento con su descripción; «NM» = no muestreada;
