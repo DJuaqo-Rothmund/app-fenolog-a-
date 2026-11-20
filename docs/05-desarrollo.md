@@ -125,6 +125,39 @@ es lo predeterminado). La elección se guarda con `shared_preferences`
 (`themeModeProvider` en `providers.dart`; `preferencesProvider` se configura en
 `main.dart` y en las pruebas queda vacío, así funciona sin guardar).
 
+## Google Drive
+
+Configuración → **Google Drive**: botón «Continuar con Google» (diseño del sistema de
+Google), y luego «Sincronizar ahora». Sube, en una sola vía (nunca borra en Drive):
+
+- Fotos: `FramBitácora/<proyecto>/<temporada>/Semana NN/<foto>.jpg`. Cada foto subida
+  queda marcada (`photos.upload_status = 'drive'`) y no se repite; si ya existe en la
+  carpeta (p. ej. tras reinstalar) solo se marca. Al cambiar de cuenta, todas vuelven a
+  quedar pendientes.
+- Copia de seguridad completa (opcional): `FramBitácora/Respaldos/*.zip`, con subida
+  reanudable (no carga el archivo en memoria).
+
+Permiso: solo `drive.file` (la app ve únicamente lo que ella crea). Código:
+`lib/data/drive/` (cliente HTTP de Drive v3 y sincronización), `lib/features/drive/`
+(inicio de sesión con `google_sign_in` y pantalla). En pruebas se reemplazan
+`googleAuthProvider` y `driveApiProvider`.
+
+### Registro en Google Cloud (una sola vez, lo hace el dueño)
+
+Sin este registro, «Continuar con Google» muestra «Esta versión de la app todavía no
+está registrada en Google Cloud».
+
+1. console.cloud.google.com → crear (o elegir) un proyecto.
+2. *APIs y servicios → Biblioteca* → habilitar **Google Drive API**.
+3. *Pantalla de consentimiento de OAuth* → tipo **Externo**, nombre «FramBitácora»,
+   correo de soporte; en *Usuarios de prueba* agregar los correos del equipo (mientras la
+   app esté «En pruebas» solo ellos pueden conectarse).
+4. *Credenciales → Crear credenciales → ID de cliente de OAuth* → tipo **Android**:
+   - Nombre del paquete: `cl.rothmund.frambitacora`
+   - Huella SHA-1 de la llave de firma (la de los secretos `ANDROID_KEYSTORE_*`):
+     `A0:94:AE:C8:0A:2B:32:82:0C:7E:34:63:3D:B2:6F:B7:7F:BC:B8:F1`
+5. No hay que copiar nada a la app: Google la reconoce por el paquete y la huella.
+
 ## Guía de fotos
 
 `lib/features/help/photo_guide_screen.dart`, con tres pestañas: **General** (canopia: a

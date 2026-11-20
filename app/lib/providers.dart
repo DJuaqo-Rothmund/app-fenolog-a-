@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/backup_service.dart';
 import 'data/catalog_repository.dart';
+import 'data/drive/drive_client.dart';
+import 'data/drive/drive_sync.dart';
 import 'data/database.dart';
 import 'data/photo_store.dart';
 import 'data/project_repository.dart';
 import 'data/report_repository.dart';
 import 'data/sampling_repository.dart';
+import 'features/drive/google_auth.dart';
 import 'reports/pdf_reports.dart';
 import 'reports/photo_shrink.dart';
 
@@ -133,3 +137,88 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 }
 
 final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+
+// ---------------------------------------------------------------------------
+// Google Drive
+
+/// Inicio de sesión con Google (se reemplaza en las pruebas).
+final googleAuthProvider = Provider<GoogleAuth>((ref) => GoogleSignInAuth());
+
+/// Conexión a internet para Drive (se reemplaza en las pruebas).
+final httpClientProvider = Provider<http.Client>((ref) => http.Client());
+
+final driveApiProvider = Provider<DriveApi>(
+  (ref) => DriveClient(ref.watch(httpClientProvider), () => ref.read(googleAuthProvider).token()),
+);
+
+final driveSyncProvider = Provider(
+  (ref) => DriveSync(
+    db: ref.watch(databaseProvider),
+    photoStore: ref.watch(photoStoreProvider),
+    drive: ref.watch(driveApiProvider),
+    backup: ref.watch(backupServiceProvider),
+  ),
+);
+
+/// Fotos que aún no están en Drive.
+final drivePendingProvider = StreamProvider((ref) => ref.watch(driveSyncProvider).watchPending());
+
+/// Cuenta de Google conectada para Drive.
+class DriveAccount {
+  const DriveAccount({required this.email, this.name = '', this.lastSync});
+  final String email;
+  final String name;
+  final DateTime? lastSync;
+}
+
+class DriveAccountNotifier extends Notifier<DriveAccount?> {
+  static const _email = 'drive_correo', _name = 'drive_nombre', _last = 'drive_ultima_sincronizacion';
+
+  SharedPreferences? get _prefs => ref.read(preferencesProvider);
+
+  @override
+  DriveAccount? build() {
+    final prefs = ref.watch(preferencesProvider);
+    final email = prefs?.getString(_email);
+    if (email == null) return null;
+    return DriveAccount(
+      email: email,
+      name: prefs?.getString(_name) ?? '',
+      lastSync: DateTime.tryParse(prefs?.getString(_last) ?? ''),
+    );
+  }
+
+  /// Muestra el selector de cuentas y el permiso de Google, y guarda la cuenta.
+  Future<void> connect() async {
+    await ref.read(googleAuthProvider).token();
+    final who = await ref.read(driveApiProvider).about();
+    // Otra cuenta = otro Drive: todas las fotos vuelven a quedar por subir.
+    if (state?.email != who.email) await ref.read(driveSyncProvider).resetUploads();
+    await _prefs?.setString(_email, who.email);
+    await _prefs?.setString(_name, who.name);
+    await _prefs?.remove(_last);
+    state = DriveAccount(email: who.email, name: who.name);
+  }
+
+  Future<void> changeAccount() async {
+    await ref.read(googleAuthProvider).signOut();
+    await connect();
+  }
+
+  Future<void> disconnect() async {
+    await ref.read(googleAuthProvider).signOut();
+    for (final k in [_email, _name, _last]) {
+      await _prefs?.remove(k);
+    }
+    state = null;
+  }
+
+  Future<void> markSynced(DateTime at) async {
+    final s = state;
+    if (s == null) return;
+    await _prefs?.setString(_last, at.toIso8601String());
+    state = DriveAccount(email: s.email, name: s.name, lastSync: at);
+  }
+}
+
+final driveAccountProvider = NotifierProvider<DriveAccountNotifier, DriveAccount?>(DriveAccountNotifier.new);

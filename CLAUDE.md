@@ -83,7 +83,11 @@ decisiones, guía de desarrollo).
   adicionales; ilustrada (escenas, «Bien / Evitar» y un dibujo por etapa en
   `app/assets/guide/`, generados con `tool/guide_svgs.py`; sin texto dentro de los SVG).
 - **Tema elegible** (Configuración → Apariencia): Claro, Oscuro o según el teléfono,
-  guardado con `shared_preferences`. 80 pruebas pasan.
+  guardado con `shared_preferences`.
+- **Google Drive** (Configuración → Google Drive): botón «Continuar con Google» con el
+  diseño de Google, sincronización de una vía de fotos por proyecto/temporada/semana y
+  copia de seguridad en `FramBitácora/Respaldos`; permiso `drive.file`. Requiere el
+  registro en Google Cloud (pasos y SHA-1 en `docs/05-desarrollo.md`). 87 pruebas pasan.
 
 ## Pendientes y preguntas abiertas
 
@@ -95,6 +99,13 @@ decisiones, guía de desarrollo).
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
 3. Confirmar PowerSync vs. motor de sincronización propio antes de la etapa 4.
+5. **Registro de Google Cloud para Drive**: el dueño debe crear el ID de cliente OAuth
+   Android con el paquete y la SHA-1 de `docs/05-desarrollo.md`; sin eso el botón de
+   Google muestra un aviso.
+6. **Rama paralela `claude/funny-hypatia-g54ifr`** (30-oct, otra conversación): tiene
+   etapas 2–5 hechas de otra forma (mediciones, Excel/CSV, Drive, servidor propio, web) y
+   firma con una llave de pruebas distinta. No está unida a esta rama; decidir con el
+   dueño qué rescatar de ahí (p. ej. mediciones, Excel/CSV).
 4. Preguntas abiertas de la etapa 2 (sin respuesta aún): qué mediciones usa; un valor o
    varias muestras por unidad y semana; qué es la medición «imagen»; campos y unidades de
    los parámetros por variedad (¿por variedad o por unidad?); formato de los datos

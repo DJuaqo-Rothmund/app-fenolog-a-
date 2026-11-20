@@ -7,6 +7,7 @@ import '../../providers.dart';
 import '../backup/backup_screen.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../drive/drive_screen.dart';
 import '../help/photo_guide_screen.dart';
 import '../projects/project_form_screen.dart';
 import '../projects/projects_screen.dart' show kindStyle;
@@ -104,6 +105,15 @@ class SettingsScreen extends ConsumerWidget {
           const SectionHeader('Datos'),
           SettingsGroup(
             children: [
+              ListTile(
+                leading: const IconBadge(Icons.cloud_outlined, size: 40),
+                title: const Text('Google Drive'),
+                subtitle: Text(
+                  ref.watch(driveAccountProvider)?.email ?? 'Conectar para respaldar fotos y datos en tu Drive',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _push(context, const DriveScreen()),
+              ),
               ListTile(
                 leading: const IconBadge.app(AppIcons.backup, size: 40),
                 title: const Text('Copia de seguridad'),
