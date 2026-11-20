@@ -81,7 +81,9 @@ Widget asyncView<T>(AsyncValue<T> value, Widget Function(T data) builder) => val
 
 /// Elige el cultivo: si hay uno solo lo devuelve directamente.
 Future<Crop?> pickCrop(BuildContext context, WidgetRef ref) async {
-  final crops = await ref.read(cropsProvider.future);
+  // Se lee de la base directamente: `cropsProvider.future` no termina si ninguna
+  // pantalla está mirando ese provider (p. ej. desde Configuración).
+  final crops = await ref.read(catalogRepositoryProvider).watchCrops().first;
   if (crops.length <= 1 || !context.mounted) return crops.firstOrNull;
   return showDialog<Crop>(
     context: context,

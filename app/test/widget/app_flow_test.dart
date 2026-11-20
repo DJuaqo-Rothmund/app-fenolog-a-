@@ -417,4 +417,24 @@ void main() {
 
     await finish(tester);
   });
+
+  testWidgets('desde Configuración se abren Variedades y la Escala fenológica', (tester) async {
+    phoneScreen(tester);
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.byTooltip('Configuración'));
+    await settle(tester);
+
+    await tester.tap(find.text('Variedades'));
+    await settle(tester);
+    expect(find.text('Variedades · Frambueso'), findsOneWidget);
+    tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+    await settle(tester);
+
+    await tester.tap(find.text('Escala fenológica'));
+    await settle(tester);
+    expect(find.text('Escala · Frambueso'), findsOneWidget);
+
+    await finish(tester);
+  });
 }
