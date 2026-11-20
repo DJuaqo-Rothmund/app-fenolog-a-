@@ -113,6 +113,28 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SectionHeader('Apariencia'),
+          SettingsGroup(
+            children: [
+              ListTile(
+                leading: const IconBadge(Icons.contrast, size: 40),
+                title: const Text('Tema'),
+                subtitle: const Text('El oscuro ahorra batería y cansa menos la vista de noche'),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode_outlined), label: Text('Claro')),
+                    ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode_outlined), label: Text('Oscuro')),
+                    ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.phone_android), label: Text('Teléfono')),
+                  ],
+                  selected: {ref.watch(themeModeProvider)},
+                  onSelectionChanged: (v) => ref.read(themeModeProvider.notifier).set(v.first),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

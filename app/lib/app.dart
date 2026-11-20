@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/projects/projects_screen.dart';
+import 'providers.dart';
 
 const _leafGreen = Color(0xFF2F6B3A);
 const _berryRed = Color(0xFFB0204E);
@@ -76,12 +78,13 @@ ThemeData buildTheme(Brightness brightness) {
   );
 }
 
-class FramBitacoraApp extends StatelessWidget {
+class FramBitacoraApp extends ConsumerWidget {
   const FramBitacoraApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
+      themeMode: ref.watch(themeModeProvider),
       title: 'FramBitácora',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),

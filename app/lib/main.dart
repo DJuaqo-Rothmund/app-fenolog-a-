@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'data/crop_importer.dart';
@@ -18,6 +19,7 @@ Future<void> main() async {
 
   final docs = await getApplicationDocumentsDirectory();
   final temp = await getTemporaryDirectory();
+  final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
@@ -25,6 +27,7 @@ Future<void> main() async {
         databaseProvider.overrideWithValue(db),
         photoStoreProvider.overrideWithValue(PhotoStore(docs.path)),
         tempDirProvider.overrideWithValue(temp.path),
+        preferencesProvider.overrideWithValue(prefs),
       ],
       child: const FramBitacoraApp(),
     ),

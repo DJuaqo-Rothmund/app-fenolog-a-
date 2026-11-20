@@ -118,6 +118,13 @@ informes. Alertas automáticas (`lib/domain/season_review.dart`):
 Las semanas no muestreadas no generan alertas. En el registro, «Quitar estado» borra un
 estado puesto por error.
 
+## Apariencia (tema)
+
+Configuración → **Apariencia**: Claro, Oscuro o Teléfono (sigue el ajuste del sistema;
+es lo predeterminado). La elección se guarda con `shared_preferences`
+(`themeModeProvider` en `providers.dart`; `preferencesProvider` se configura en
+`main.dart` y en las pruebas queda vacío, así funciona sin guardar).
+
 ## Guía de fotos
 
 `lib/features/help/photo_guide_screen.dart`, con tres pestañas: **General** (canopia: a

@@ -437,4 +437,25 @@ void main() {
 
     await finish(tester);
   });
+
+  testWidgets('Configuración → Apariencia: elegir tema claro u oscuro', (tester) async {
+    phoneScreen(tester);
+    await tester.pumpWidget(app());
+    await settle(tester);
+    await tester.tap(find.byTooltip('Configuración'));
+    await settle(tester);
+    await tester.scrollUntilVisible(find.text('Teléfono'), 300, scrollable: find.byType(Scrollable).last);
+    await tester.pumpAndSettle();
+    expect(find.text('Teléfono'), findsOneWidget, reason: 'por defecto, según el teléfono');
+
+    await tester.tap(find.text('Oscuro'));
+    await settle(tester);
+    expect(Theme.of(tester.element(find.text('Apariencia'))).brightness, Brightness.dark);
+
+    await tester.tap(find.text('Claro'));
+    await settle(tester);
+    expect(Theme.of(tester.element(find.text('Apariencia'))).brightness, Brightness.light);
+
+    await finish(tester);
+  });
 }

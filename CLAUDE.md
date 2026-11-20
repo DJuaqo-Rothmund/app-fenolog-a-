@@ -82,7 +82,8 @@ decisiones, guía de desarrollo).
   qué es y cómo tomar la foto general (canopia), la de detalle (por macroestadio) y las
   adicionales; ilustrada (escenas, «Bien / Evitar» y un dibujo por etapa en
   `app/assets/guide/`, generados con `tool/guide_svgs.py`; sin texto dentro de los SVG).
-  78 pruebas pasan.
+- **Tema elegible** (Configuración → Apariencia): Claro, Oscuro o según el teléfono,
+  guardado con `shared_preferences`. 80 pruebas pasan.
 
 ## Pendientes y preguntas abiertas
 

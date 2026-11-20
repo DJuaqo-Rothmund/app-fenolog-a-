@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/backup_service.dart';
 import 'data/catalog_repository.dart';
@@ -109,3 +111,25 @@ final observationProvider = StreamProvider.family<Observation?, ({String seasonI
 final photosProvider = StreamProvider.family<List<Photo>, String>(
   (ref, observationId) => ref.watch(samplingRepositoryProvider).watchPhotos(observationId),
 );
+
+/// Preferencias guardadas en el teléfono. Se configura en `main.dart`; si falta
+/// (pruebas), las preferencias funcionan pero no se guardan.
+final preferencesProvider = Provider<SharedPreferences?>((ref) => null);
+
+/// Tema elegido: claro, oscuro o según el teléfono (se recuerda al reabrir la app).
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  static const _key = 'tema';
+
+  @override
+  ThemeMode build() {
+    final saved = ref.watch(preferencesProvider)?.getString(_key);
+    return ThemeMode.values.firstWhere((m) => m.name == saved, orElse: () => ThemeMode.system);
+  }
+
+  Future<void> set(ThemeMode mode) async {
+    state = mode;
+    await ref.read(preferencesProvider)?.setString(_key, mode.name);
+  }
+}
+
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
