@@ -1,0 +1,776 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Marcador de Estructuras</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: herramienta de trabajo — fotos a la izquierda, foto grande al centro, botonera de estadios a la derecha (apilado en teléfono) */
+:root {
+  --bg: #f3f5f1;
+  --panel: #ffffff;
+  --line: #d9ded5;
+  --fg: #1b231d;
+  --muted: #5f6b62;
+  --accent: #a3264b;
+  --accent-ink: #ffffff;
+  --stage: #1d2620;
+  --soft: #e8ece5;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121714; --panel: #1a211c; --line: #2c3630; --fg: #e6ece7; --muted: #9aa89e;
+    --accent: #e0577d; --accent-ink: #1a0a10; --stage: #0b0f0c; --soft: #232c26; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121714; --panel: #1a211c; --line: #2c3630; --fg: #e6ece7; --muted: #9aa89e;
+  --accent: #e0577d; --accent-ink: #1a0a10; --stage: #0b0f0c; --soft: #232c26; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 24px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 12px; }
+.top h1 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.top p { margin: 0; color: var(--muted); font-size: 0.85rem; flex: 1 1 260px; min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 12px;
+  font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.danger { color: var(--accent); }
+input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.work { display: grid; grid-template-columns: 170px minmax(0, 1fr) 250px; gap: 12px; align-items: start; }
+.thumbs { display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 110px); overflow-y: auto; padding: 2px; }
+.thumb {
+  display: grid; grid-template-columns: 54px 1fr; gap: 8px; align-items: center; text-align: left;
+  border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 5px;
+}
+.thumb[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.thumb img { width: 54px; height: 54px; object-fit: cover; border-radius: 5px; display: block; background: var(--soft); }
+.thumb .tname { font-size: 0.75rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.thumb .tstate { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.thumb .tstate.ok { color: var(--fg); }
+.thumb > span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.center { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.viewbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.viewbar .fname { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 140px; }
+.viewbar .sm { padding: 6px 10px; }
+.sample-tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; background: var(--soft); color: var(--muted); padding: 3px 7px; border-radius: 4px; font-weight: 700; }
+.viewport {
+  background: var(--stage); border-radius: 10px; height: min(68vh, 720px); overflow: auto; display: flex;
+  position: relative; touch-action: pan-x pan-y;
+}
+.stage { position: relative; margin: auto; flex: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.stage img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.mk {
+  position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.5);
+  display: grid; place-items: center; font: 700 12px/1 var(--font-body); padding: 0;
+}
+.mk:hover { transform: scale(1.15); }
+.stage.boxmode { touch-action: none; }
+.bx { position: absolute; border: 2px solid; box-shadow: 0 0 0 1px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.6); pointer-events: none; }
+.bx.draft { border-style: dashed; }
+.bx .tag {
+  position: absolute; left: -2px; top: -2px; transform: translateY(-100%); pointer-events: auto;
+  min-width: 20px; height: 18px; padding: 0 5px; border: 0; border-radius: 3px 3px 0 0;
+  font: 700 11px/18px var(--font-body); box-shadow: 0 0 0 1px rgba(0,0,0,.55);
+}
+.bx .tag.inside { transform: none; border-radius: 0 0 3px 0; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.modes button { border: 0; background: transparent; padding: 8px 6px; font-weight: 600; font-size: 0.85rem; display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
+.modes button + button { border-left: 1px solid var(--line); }
+.modes button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.modes .ico-box { width: 13px; height: 10px; border: 2px solid currentColor; border-radius: 1px; }
+.modes .ico-pt { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.na-overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+  background: rgba(0,0,0,.35); color: #fff; font: 700 1.4rem var(--font-display); letter-spacing: .02em;
+}
+.empty { margin: auto; color: #c9d3cb; text-align: center; padding: 24px; max-width: 360px; line-height: 1.5; }
+
+.report {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-variant-numeric: tabular-nums;
+}
+.report .rtitle { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; width: 100%; }
+.report .ri { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; }
+.report .ri.zero { color: var(--muted); }
+.report .total { margin-left: auto; font-weight: 700; font-size: 0.95rem; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.35); display: inline-block; }
+
+.side { display: flex; flex-direction: column; gap: 10px; }
+.side h2 { font-family: var(--font-display); font-size: 0.8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.palette { display: flex; flex-direction: column; gap: 6px; }
+.tbtn {
+  display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; text-align: left;
+  border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 10px 6px 6px; font-weight: 600;
+}
+.tbtn .sw { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 0.85rem; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.tbtn .cnt { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 600; min-width: 2ch; text-align: right; }
+.tbtn[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--soft); }
+.tbtn.na .sw { background: var(--soft); color: var(--muted); font-size: 0.7rem; }
+.hint { color: var(--muted); font-size: 0.78rem; line-height: 1.5; margin: 0; }
+.hint kbd { font: 600 0.72rem var(--font-body); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--panel); }
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+  max-width: calc(100% - 32px); z-index: 20;
+}
+.drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: 0.8rem; }
+
+@media (max-width: 900px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .thumbs { flex-direction: row; max-height: none; overflow-x: auto; overflow-y: hidden; order: 0; }
+  .thumb { grid-template-columns: 54px; flex: none; width: 66px; }
+  .thumb > span { display: none; }
+  .thumb { position: relative; }
+  .thumb .badge { display: block; }
+  .viewport { height: 56vh; }
+  .palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+.thumb .badge {
+  display: none; position: absolute; right: 3px; bottom: 3px; background: var(--fg); color: var(--bg);
+  font-size: 0.65rem; font-weight: 700; border-radius: 4px; padding: 1px 4px; font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) { .mk:hover { transform: none; } }
+</style>
+
+<header class="top">
+  <h1>Marcador de Estructuras</h1>
+  <p>Sube fotos, elige un estadio y toca cada estructura en la foto. Descarga las fotos con sus marcas y el conteo al pie.</p>
+  <div class="actions">
+    <label class="btn primary" for="fileIn">+ Subir fotos</label>
+    <input id="fileIn" type="file" accept="image/*" multiple>
+    <button class="btn" id="dlOne" type="button">Descargar foto</button>
+    <button class="btn" id="dlAll" type="button">Descargar todas (.zip)</button>
+    <button class="btn" id="dlCsv" type="button">Resumen (.csv)</button>
+  </div>
+</header>
+
+<main class="work">
+  <nav class="thumbs" id="thumbs" aria-label="Fotos"></nav>
+
+  <section class="center">
+    <div class="viewbar">
+      <span class="fname" id="fname">—</span>
+      <span class="sample-tag" id="sampleTag" hidden>Ejemplo</span>
+      <button class="btn sm" id="prev" type="button" aria-label="Foto anterior">←</button>
+      <button class="btn sm" id="next" type="button" aria-label="Foto siguiente">→</button>
+      <button class="btn sm" id="zoomOut" type="button" aria-label="Alejar">−</button>
+      <button class="btn sm" id="zoomFit" type="button">Ajustar</button>
+      <button class="btn sm" id="zoomIn" type="button" aria-label="Acercar">+</button>
+      <button class="btn sm" id="undo" type="button">Deshacer</button>
+      <span id="delWrap"><button class="btn sm danger" id="del" type="button">Quitar foto</button></span>
+    </div>
+    <div class="viewport" id="viewport">
+      <div class="stage" id="stage" hidden>
+        <img id="photo" alt="">
+        <div id="marks"></div>
+        <div class="na-overlay" id="naOverlay" hidden>Sin estructuras (N/A)</div>
+      </div>
+      <div class="empty" id="empty" hidden>Sube una o varias fotos para empezar a marcar. También puedes arrastrarlas a esta página.</div>
+    </div>
+    <div class="report" id="report" aria-live="polite"></div>
+  </section>
+
+  <aside class="side">
+    <h2>Forma de marcar</h2>
+    <div class="modes" role="group" aria-label="Forma de marcar">
+      <button type="button" id="modeBox" aria-pressed="true"><span class="ico-box"></span>Caja</button>
+      <button type="button" id="modePt" aria-pressed="false"><span class="ico-pt"></span>Punto</button>
+    </div>
+    <h2>Estadio a marcar</h2>
+    <div class="palette" id="palette"></div>
+    <p class="hint"><b>Caja:</b> arrastra sobre la estructura para encerrarla. <b>Punto:</b> toca la foto. Toca el número de una marca para borrarla. Con zoom en el teléfono, cambia a Punto para moverte por la foto. Teclas: <kbd>C</kbd>/<kbd>P</kbd> caja o punto, <kbd>1</kbd>–<kbd>9</kbd> estadio, <kbd>0</kbd> N/A, <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer, <kbd>←</kbd> <kbd>→</kbd> cambiar foto.</p>
+    <p class="hint">Las fotos y marcas quedan guardadas en este navegador mientras no borres sus datos.</p>
+  </aside>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const TYPES = [
+    { k: 1, name: "Yema",          color: "#8a5a32", ink: "#ffffff" },
+    { k: 2, name: "Brote",         color: "#c3cf2e", ink: "#1b231d" },
+    { k: 3, name: "Botón",         color: "#1f9e8f", ink: "#ffffff" },
+    { k: 4, name: "Botón blanco",  color: "#f4f3ea", ink: "#1b231d" },
+    { k: 5, name: "Flor",          color: "#ef6fa0", ink: "#ffffff" },
+    { k: 6, name: "Flor pasada",   color: "#9a8478", ink: "#ffffff" },
+    { k: 7, name: "Fruto verde",   color: "#2f7d32", ink: "#ffffff" },
+    { k: 8, name: "Fruto pintón",  color: "#f08a12", ink: "#1b231d" },
+    { k: 9, name: "Fruto maduro",  color: "#c4202f", ink: "#ffffff" },
+  ];
+  const T = Object.fromEntries(TYPES.map(t => [t.k, t]));
+  const $ = id => document.getElementById(id);
+
+  let savedMode = "box";
+  try { savedMode = localStorage.getItem("marcador-modo") || "box"; } catch {}
+  const state = { photos: [], cur: -1, type: 1, zoom: 1, history: new Map(), mode: savedMode === "pt" ? "pt" : "box" };
+
+  // ---------- Almacenamiento local (IndexedDB) ----------
+  let dbP = null;
+  function openDb() {
+    if (dbP) return dbP;
+    dbP = new Promise(res => {
+      try {
+        const rq = indexedDB.open("marcador-estructuras", 1);
+        rq.onupgradeneeded = () => rq.result.createObjectStore("photos", { keyPath: "id" });
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror = () => res(null);
+      } catch { res(null); }
+    });
+    return dbP;
+  }
+  async function dbTx(mode, fn) {
+    const db = await openDb();
+    if (!db) return null;
+    return new Promise(res => {
+      try {
+        const tx = db.transaction("photos", mode);
+        const r = fn(tx.objectStore("photos"));
+        tx.oncomplete = () => res(r && r.result);
+        tx.onerror = () => res(null);
+      } catch { res(null); }
+    });
+  }
+  const saveTimers = new Map();
+  function persist(p) {
+    if (p.sample) return;
+    clearTimeout(saveTimers.get(p.id));
+    saveTimers.set(p.id, setTimeout(() => {
+      dbTx("readwrite", s => s.put({ id: p.id, name: p.name, blob: p.blob, w: p.w, h: p.h, marks: p.marks, na: p.na, order: p.order }));
+    }, 250));
+  }
+  const unpersist = id => dbTx("readwrite", s => s.delete(id));
+
+  // ---------- Utilidades ----------
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  function toast(msg) {
+    const el = $("toast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => (el.hidden = true), 2600);
+  }
+  function loadImg(url) {
+    return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  }
+  function counts(p) {
+    const c = Object.fromEntries(TYPES.map(t => [t.k, 0]));
+    for (const m of p.marks) c[m.t]++;
+    return c;
+  }
+  const baseName = n => n.replace(/\.[^.]+$/, "");
+  const cur = () => state.photos[state.cur];
+
+  async function addFiles(files) {
+    const imgs = [...files].filter(f => f.type.startsWith("image/"));
+    if (!imgs.length) return;
+    if (state.photos.length && state.photos[0].sample) { state.photos = []; }
+    let order = state.photos.reduce((m, p) => Math.max(m, p.order || 0), 0);
+    const first = state.photos.length;
+    for (const f of imgs) {
+      const url = URL.createObjectURL(f);
+      try {
+        const im = await loadImg(url);
+        const p = { id: uid(), name: f.name, blob: f, url, w: im.naturalWidth, h: im.naturalHeight, marks: [], na: false, order: ++order };
+        state.photos.push(p); persist(p);
+      } catch { URL.revokeObjectURL(url); toast("No se pudo abrir " + f.name); }
+    }
+    state.cur = Math.min(first, state.photos.length - 1);
+    state.zoom = 1;
+    renderAll();
+    toast(imgs.length === 1 ? "1 foto cargada" : imgs.length + " fotos cargadas");
+  }
+
+  // ---------- Cambios con deshacer ----------
+  function snapshot(p) {
+    const h = state.history.get(p.id) || [];
+    h.push(JSON.stringify({ marks: p.marks, na: p.na }));
+    if (h.length > 200) h.shift();
+    state.history.set(p.id, h);
+  }
+  function undo() {
+    const p = cur(); if (!p) return;
+    const h = state.history.get(p.id);
+    if (!h || !h.length) { toast("Nada que deshacer"); return; }
+    const s = JSON.parse(h.pop()); p.marks = s.marks; p.na = s.na;
+    persist(p); renderMarks(); renderPalette(); renderReport(); renderThumbs();
+  }
+  function addMark(m) {
+    const p = cur(); if (!p) return;
+    snapshot(p);
+    p.na = false;
+    p.marks.push({ t: state.type, ...m });
+    persist(p); renderMarks(); renderPalette(); renderReport(); renderThumbs();
+  }
+  function removeMark(i) {
+    const p = cur(); if (!p) return;
+    snapshot(p); p.marks.splice(i, 1);
+    persist(p); renderMarks(); renderPalette(); renderReport(); renderThumbs();
+  }
+  function toggleNA() {
+    const p = cur(); if (!p) return;
+    if (!p.na && p.marks.length) {
+      toast("Esta foto ya tiene marcas. Bórralas antes de marcar N/A.");
+      return;
+    }
+    snapshot(p); p.na = !p.na;
+    persist(p); renderMarks(); renderPalette(); renderReport(); renderThumbs();
+  }
+
+  // ---------- Render ----------
+  function renderThumbs() {
+    const box = $("thumbs"); box.textContent = "";
+    state.photos.forEach((p, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "thumb"; b.setAttribute("aria-current", String(i === state.cur));
+      const im = document.createElement("img"); im.src = p.url; im.alt = "";
+      const sp = document.createElement("span");
+      const n = document.createElement("span"); n.className = "tname"; n.textContent = p.name;
+      const s = document.createElement("span");
+      const total = p.marks.length;
+      s.className = "tstate" + (total || p.na ? " ok" : "");
+      s.textContent = p.na ? "N/A" : total ? total + " marcas" : "Sin marcar";
+      const badge = document.createElement("span"); badge.className = "badge";
+      badge.textContent = p.na ? "N/A" : String(total);
+      sp.append(n, s); b.append(im, sp, badge);
+      b.addEventListener("click", () => { state.cur = i; state.zoom = 1; renderAll(); });
+      box.append(b);
+    });
+  }
+  function renderPalette() {
+    const box = $("palette"); box.textContent = "";
+    const p = cur(); const c = p ? counts(p) : {};
+    for (const t of TYPES) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tbtn"; b.setAttribute("aria-pressed", String(state.type === t.k));
+      const sw = document.createElement("span"); sw.className = "sw"; sw.style.background = t.color; sw.style.color = t.ink; sw.textContent = t.k;
+      const nm = document.createElement("span"); nm.textContent = t.name;
+      const cn = document.createElement("span"); cn.className = "cnt"; cn.textContent = p ? c[t.k] : "";
+      b.append(sw, nm, cn);
+      b.addEventListener("click", () => { state.type = t.k; renderPalette(); });
+      box.append(b);
+    }
+    const na = document.createElement("button");
+    na.type = "button"; na.className = "tbtn na"; na.setAttribute("aria-pressed", String(!!(p && p.na)));
+    const sw = document.createElement("span"); sw.className = "sw"; sw.textContent = "N/A";
+    const nm = document.createElement("span"); nm.textContent = "Sin estructuras";
+    const cn = document.createElement("span"); cn.className = "cnt"; cn.textContent = p && p.na ? "✓" : "";
+    na.append(sw, nm, cn);
+    na.addEventListener("click", toggleNA);
+    box.append(na);
+  }
+  function renderReport() {
+    const box = $("report"); box.textContent = "";
+    const p = cur();
+    const title = document.createElement("span"); title.className = "rtitle"; title.textContent = "Pie de foto · conteo por tipo";
+    box.append(title);
+    if (!p) { const s = document.createElement("span"); s.className = "ri zero"; s.textContent = "Sin foto seleccionada"; box.append(s); return; }
+    const c = counts(p);
+    for (const t of TYPES) {
+      const s = document.createElement("span"); s.className = "ri" + (c[t.k] ? "" : " zero");
+      const d = document.createElement("span"); d.className = "dot"; d.style.background = t.color;
+      s.append(d, document.createTextNode(t.name + ": " + c[t.k]));
+      box.append(s);
+    }
+    const tot = document.createElement("span"); tot.className = "total";
+    tot.textContent = p.na ? "Sin estructuras (N/A)" : "Total: " + p.marks.length;
+    box.append(tot);
+  }
+  function renderMarks() {
+    const p = cur(); const box = $("marks"); box.textContent = "";
+    $("naOverlay").hidden = !(p && p.na);
+    if (!p) return;
+    const stH = $("stage").offsetHeight || 1;
+    p.marks.forEach((m, i) => {
+      const t = T[m.t];
+      if (m.w) {
+        const bx = document.createElement("div"); bx.className = "bx";
+        bx.style.left = (m.x / p.w * 100) + "%"; bx.style.top = (m.y / p.h * 100) + "%";
+        bx.style.width = (m.w / p.w * 100) + "%"; bx.style.height = (m.h / p.h * 100) + "%";
+        bx.style.borderColor = t.color;
+        const tag = document.createElement("button");
+        tag.type = "button"; tag.className = "tag" + (m.y / p.h * stH < 20 ? " inside" : ""); tag.textContent = t.k;
+        tag.style.background = t.color; tag.style.color = t.ink;
+        tag.title = t.name + " — tocar para borrar";
+        tag.setAttribute("aria-label", t.name + ", borrar caja");
+        tag.addEventListener("pointerdown", e => e.stopPropagation());
+        tag.addEventListener("click", e => { e.stopPropagation(); removeMark(i); });
+        bx.append(tag); box.append(bx);
+        return;
+      }
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "mk"; b.textContent = t.k;
+      b.style.left = (m.x / p.w * 100) + "%"; b.style.top = (m.y / p.h * 100) + "%";
+      b.style.background = t.color; b.style.color = t.ink;
+      b.title = t.name + " — tocar para borrar";
+      b.setAttribute("aria-label", t.name + ", borrar marca");
+      b.addEventListener("pointerdown", e => e.stopPropagation());
+      b.addEventListener("click", e => { e.stopPropagation(); removeMark(i); });
+      box.append(b);
+    });
+  }
+  function layoutStage(keepCenter) {
+    const p = cur(); const vp = $("viewport"); const st = $("stage");
+    if (!p) return;
+    const vw = vp.clientWidth - 16, vh = vp.clientHeight - 16;
+    const fit = Math.min(vw / p.w, vh / p.h);
+    let cx = 0.5, cy = 0.5;
+    if (keepCenter && st.offsetWidth) {
+      cx = (vp.scrollLeft + vp.clientWidth / 2 - st.offsetLeft) / st.offsetWidth;
+      cy = (vp.scrollTop + vp.clientHeight / 2 - st.offsetTop) / st.offsetHeight;
+    }
+    st.style.width = Math.round(p.w * fit * state.zoom) + "px";
+    st.style.height = Math.round(p.h * fit * state.zoom) + "px";
+    vp.scrollLeft = st.offsetLeft + cx * st.offsetWidth - vp.clientWidth / 2;
+    vp.scrollTop = st.offsetTop + cy * st.offsetHeight - vp.clientHeight / 2;
+    renderMarks();
+  }
+  function renderStage() {
+    const p = cur();
+    $("stage").hidden = !p; $("empty").hidden = !!p;
+    $("fname").textContent = p ? p.name + "  (" + (state.cur + 1) + " de " + state.photos.length + ")" : "Sin fotos";
+    $("sampleTag").hidden = !(p && p.sample);
+    for (const id of ["prev", "next", "zoomOut", "zoomFit", "zoomIn", "undo", "del", "dlOne", "dlAll", "dlCsv"]) $(id).disabled = !p;
+    if (p) { $("prev").disabled = state.cur === 0; $("next").disabled = state.cur === state.photos.length - 1; }
+    resetDel();
+    if (!p) return;
+    $("photo").src = p.url;
+    layoutStage(false);
+  }
+  function renderAll() { renderThumbs(); renderStage(); renderPalette(); renderReport(); }
+
+  // ---------- Quitar foto (confirmación en la página) ----------
+  function resetDel() {
+    const w = $("delWrap"); w.textContent = "";
+    const b = document.createElement("button"); b.className = "btn sm danger"; b.id = "del"; b.type = "button"; b.textContent = "Quitar foto";
+    b.disabled = !cur();
+    b.addEventListener("click", askDel); w.append(b);
+  }
+  function askDel() {
+    const w = $("delWrap"); w.textContent = "";
+    const box = document.createElement("span"); box.className = "confirm";
+    const yes = document.createElement("button"); yes.className = "btn sm primary"; yes.type = "button"; yes.textContent = "Sí, quitar";
+    const no = document.createElement("button"); no.className = "btn sm"; no.type = "button"; no.textContent = "Cancelar";
+    yes.addEventListener("click", () => {
+      const p = cur(); if (!p) return;
+      unpersist(p.id); URL.revokeObjectURL(p.url);
+      state.photos.splice(state.cur, 1);
+      state.cur = Math.min(state.cur, state.photos.length - 1);
+      renderAll(); toast("Foto quitada");
+    });
+    no.addEventListener("click", resetDel);
+    box.append(yes, no); w.append(box);
+  }
+
+  // ---------- Exportar ----------
+  async function renderExport(p) {
+    const im = await loadImg(p.url);
+    const W = im.naturalWidth, H = im.naturalHeight;
+    const sx = W / p.w, sy = H / p.h;
+    const fs = Math.round(Math.max(16, W * 0.019));
+    const pad = Math.round(fs * 1.1);
+    const colW = fs * 10.5;
+    const cols = Math.max(2, Math.min(5, Math.floor((W - pad * 2) / colW)));
+    const rows = Math.ceil(TYPES.length / cols);
+    const rowH = Math.round(fs * 1.75);
+    const headH = Math.round(fs * 2.4);
+    const footH = pad * 2 + headH + rows * rowH;
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H + footH;
+    const g = cv.getContext("2d");
+    g.drawImage(im, 0, 0, W, H);
+    const r = Math.max(10, Math.round(Math.max(W, H) * 0.011));
+    g.textAlign = "center"; g.textBaseline = "middle";
+    const lw = Math.max(3, Math.round(Math.max(W, H) * 0.0028));
+    const tfs = Math.max(13, Math.round(r * 1.15));
+    for (const m of p.marks) {
+      if (!m.w) continue;
+      const t = T[m.t]; const x = m.x * sx, y = m.y * sy, w = m.w * sx, h = m.h * sy;
+      g.lineWidth = lw + 2; g.strokeStyle = "rgba(0,0,0,0.6)"; g.strokeRect(x, y, w, h);
+      g.lineWidth = lw; g.strokeStyle = t.color; g.strokeRect(x, y, w, h);
+      const th = Math.round(tfs * 1.45), tw = Math.round(tfs * 1.6);
+      const ty = y - th < 0 ? y : y - th;
+      g.fillStyle = "rgba(0,0,0,0.6)"; g.fillRect(x - lw / 2 - 1, ty - 1, tw + 2, th + 2);
+      g.fillStyle = t.color; g.fillRect(x - lw / 2, ty, tw, th);
+      g.fillStyle = t.ink; g.font = "700 " + tfs + "px Inter, Arial, sans-serif";
+      g.fillText(String(t.k), x - lw / 2 + tw / 2, ty + th / 2 + 1);
+    }
+    for (const m of p.marks) {
+      if (m.w) continue;
+      const t = T[m.t]; const x = m.x * sx, y = m.y * sy;
+      g.beginPath(); g.arc(x, y, r + r * 0.28, 0, Math.PI * 2); g.fillStyle = "rgba(0,0,0,0.55)"; g.fill();
+      g.beginPath(); g.arc(x, y, r + r * 0.18, 0, Math.PI * 2); g.fillStyle = "#ffffff"; g.fill();
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = t.color; g.fill();
+      g.fillStyle = t.ink; g.font = "700 " + Math.round(r * 1.15) + "px Inter, Arial, sans-serif";
+      g.fillText(String(t.k), x, y + r * 0.05);
+    }
+    if (p.na) {
+      g.fillStyle = "rgba(0,0,0,0.45)"; g.fillRect(0, H / 2 - fs * 1.6, W, fs * 3.2);
+      g.fillStyle = "#fff"; g.font = "700 " + Math.round(fs * 1.5) + "px Inter, Arial, sans-serif";
+      g.fillText("Sin estructuras (N/A)", W / 2, H / 2);
+    }
+    // Pie de foto
+    g.fillStyle = "#16201a"; g.fillRect(0, H, W, footH);
+    g.textBaseline = "middle"; g.textAlign = "left";
+    const c = counts(p);
+    const hy = H + pad + headH / 2 - fs * 0.3;
+    g.fillStyle = "#ffffff"; g.font = "600 " + fs + "px Inter, Arial, sans-serif";
+    const fecha = new Date().toLocaleDateString("es-CL");
+    g.fillText(baseName(p.name) + "  ·  " + fecha, pad, hy, W * 0.6);
+    g.textAlign = "right"; g.font = "700 " + Math.round(fs * 1.15) + "px Inter, Arial, sans-serif";
+    g.fillText(p.na ? "Sin estructuras (N/A)" : "Total: " + p.marks.length + " estructuras", W - pad, hy);
+    g.fillStyle = "rgba(255,255,255,0.18)"; g.fillRect(pad, H + pad + headH - fs * 0.5, W - pad * 2, Math.max(1, fs * 0.06));
+    const cw = (W - pad * 2) / cols;
+    TYPES.forEach((t, i) => {
+      const x = pad + (i % cols) * cw, y = H + pad + headH + Math.floor(i / cols) * rowH + rowH / 2 - fs * 0.2;
+      const rr = fs * 0.55;
+      g.beginPath(); g.arc(x + rr, y, rr, 0, Math.PI * 2); g.fillStyle = t.color; g.fill();
+      g.lineWidth = Math.max(1, fs * 0.08); g.strokeStyle = "#ffffff"; g.stroke();
+      g.fillStyle = t.ink; g.textAlign = "center"; g.font = "700 " + Math.round(fs * 0.7) + "px Inter, Arial, sans-serif";
+      g.fillText(String(t.k), x + rr, y + 1);
+      g.textAlign = "left"; g.fillStyle = c[t.k] ? "#ffffff" : "rgba(255,255,255,0.5)";
+      g.font = "500 " + Math.round(fs * 0.9) + "px Inter, Arial, sans-serif";
+      g.fillText(t.name + ": ", x + rr * 2 + fs * 0.45, y, cw - rr * 2 - fs * 2.6);
+      const lw = Math.min(g.measureText(t.name + ": ").width, cw - rr * 2 - fs * 2.6);
+      g.font = "700 " + Math.round(fs * 0.9) + "px Inter, Arial, sans-serif";
+      g.fillText(String(c[t.k]), x + rr * 2 + fs * 0.45 + lw, y);
+    });
+    return new Promise(res => cv.toBlob(res, "image/jpeg", 0.92));
+  }
+  // .zip sin compresión (las JPG ya vienen comprimidas): encabezados locales, directorio central y cierre
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u8) { let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+  async function makeZip(entries) {
+    const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+    const d = new Date();
+    const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+    const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    for (const e of entries) {
+      const data = e.data instanceof Blob ? new Uint8Array(await e.data.arrayBuffer()) : enc.encode(e.data);
+      const name = enc.encode(e.name); const crc = crc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, time, true); lh.setUint16(12, date, true); lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(lh.buffer, name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, time, true); ch.setUint16(14, date, true); ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(ch.buffer, name);
+      offset += 30 + name.length + data.length;
+    }
+    const cdSize = central.reduce((n, p) => n + (p.byteLength || p.length), 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end.buffer], { type: "application/zip" });
+  }
+  function csv() {
+    const head = ["foto", ...TYPES.map(t => t.name), "total", "sin_estructuras"];
+    const lines = [head.join(";")];
+    for (const p of state.photos) {
+      const c = counts(p);
+      lines.push(['"' + p.name.replace(/"/g, '""') + '"', ...TYPES.map(t => c[t.k]), p.marks.length, p.na ? "si" : "no"].join(";"));
+    }
+    return "﻿" + lines.join("\r\n");
+  }
+  const dlP = (window.claude && window.claude.use) ? window.claude.use("downloads").catch(() => null) : Promise.resolve(null);
+  async function saveFile(filename, blob) {
+    const d = await Promise.race([dlP, new Promise(r => setTimeout(() => r(undefined), 300))]);
+    if (d) {
+      try { await d.save({ filename, data: blob }); toast("Guardado: " + filename); }
+      catch (e) {
+        const code = e && e.code;
+        toast(code === "declined" ? "Descarga cancelada" : code === "rate_limited" ? "Espera un momento y vuelve a intentar" : "No se pudo descargar aquí");
+      }
+      return;
+    }
+    if (d === null && window.claude) { toast("Este visor no permite descargas"); return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  async function busy(btn, label, fn) {
+    const old = btn.textContent; btn.disabled = true; btn.textContent = label;
+    try { await fn(); } finally { btn.disabled = false; btn.textContent = old; }
+  }
+  $("dlOne").addEventListener("click", e => busy(e.currentTarget, "Preparando…", async () => {
+    const p = cur(); if (!p) return;
+    await saveFile(baseName(p.name) + "_marcado.jpg", await renderExport(p));
+  }));
+  $("dlAll").addEventListener("click", e => busy(e.currentTarget, "Preparando…", async () => {
+    if (!state.photos.length) return;
+    const entries = []; const used = new Set();
+    for (const p of state.photos) {
+      let n = baseName(p.name) + "_marcado.jpg", k = 2;
+      while (used.has(n)) n = baseName(p.name) + "_marcado_" + (k++) + ".jpg";
+      used.add(n);
+      entries.push({ name: n, data: await renderExport(p) });
+    }
+    entries.push({ name: "resumen_conteo.csv", data: csv() });
+    const blob = await makeZip(entries);
+    const d = new Date(); const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0");
+    await saveFile(stamp + "_fotos_marcadas.zip", blob);
+  }));
+  $("dlCsv").addEventListener("click", () => saveFile("resumen_conteo.csv", new Blob([csv()], { type: "text/csv" })));
+
+  // ---------- Eventos ----------
+  $("fileIn").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
+  // Dibujo: arrastrar = caja, tocar = punto
+  let drag = null;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function toImg(e) {
+    const p = cur(); const r = $("stage").getBoundingClientRect();
+    return { x: clamp((e.clientX - r.left) / r.width * p.w, 0, p.w), y: clamp((e.clientY - r.top) / r.height * p.h, 0, p.h) };
+  }
+  function setMode(m) {
+    state.mode = m;
+    try { localStorage.setItem("marcador-modo", m); } catch {}
+    $("modeBox").setAttribute("aria-pressed", String(m === "box"));
+    $("modePt").setAttribute("aria-pressed", String(m === "pt"));
+    $("stage").classList.toggle("boxmode", m === "box");
+  }
+  $("modeBox").addEventListener("click", () => setMode("box"));
+  $("modePt").addEventListener("click", () => setMode("pt"));
+  const st = $("stage");
+  st.addEventListener("pointerdown", e => {
+    const p = cur(); if (!p || e.button !== 0) return;
+    drag = { a: toImg(e), sx: e.clientX, sy: e.clientY, el: null };
+    if (state.mode === "box") {
+      e.preventDefault();
+      try { st.setPointerCapture(e.pointerId); } catch {}
+      const d = document.createElement("div"); d.className = "bx draft"; d.style.borderColor = T[state.type].color;
+      d.hidden = true; $("marks").append(d); drag.el = d;
+    }
+  });
+  st.addEventListener("pointermove", e => {
+    if (!drag || !drag.el) return;
+    const p = cur(); const b = toImg(e);
+    const x = Math.min(drag.a.x, b.x), y = Math.min(drag.a.y, b.y);
+    Object.assign(drag.el.style, {
+      left: (x / p.w * 100) + "%", top: (y / p.h * 100) + "%",
+      width: (Math.abs(b.x - drag.a.x) / p.w * 100) + "%", height: (Math.abs(b.y - drag.a.y) / p.h * 100) + "%",
+    });
+    drag.el.hidden = false;
+  });
+  st.addEventListener("pointerup", e => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.el) d.el.remove();
+    const p = cur(); if (!p) return;
+    const dx = Math.abs(e.clientX - d.sx), dy = Math.abs(e.clientY - d.sy);
+    if (state.mode === "box") {
+      if (dx < 8 || dy < 8) { toast("Arrastra sobre la estructura para dibujar la caja"); return; }
+      const b = toImg(e);
+      const x = Math.min(d.a.x, b.x), y = Math.min(d.a.y, b.y);
+      addMark({ x: Math.round(x), y: Math.round(y), w: Math.round(Math.abs(b.x - d.a.x)), h: Math.round(Math.abs(b.y - d.a.y)) });
+    } else if (dx < 8 && dy < 8) {
+      addMark({ x: Math.round(d.a.x), y: Math.round(d.a.y) });
+    }
+  });
+  st.addEventListener("pointercancel", () => { if (drag && drag.el) drag.el.remove(); drag = null; });
+  setMode(state.mode);
+  const go = d => { const n = state.cur + d; if (n >= 0 && n < state.photos.length) { state.cur = n; state.zoom = 1; renderAll(); } };
+  $("prev").addEventListener("click", () => go(-1));
+  $("next").addEventListener("click", () => go(1));
+  const zoomTo = z => { state.zoom = Math.max(1, Math.min(8, z)); layoutStage(true); };
+  $("zoomIn").addEventListener("click", () => zoomTo(state.zoom * 1.5));
+  $("zoomOut").addEventListener("click", () => zoomTo(state.zoom / 1.5));
+  $("zoomFit").addEventListener("click", () => zoomTo(1));
+  $("viewport").addEventListener("wheel", e => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault(); zoomTo(state.zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2));
+  }, { passive: false });
+  $("undo").addEventListener("click", undo);
+  window.addEventListener("resize", () => layoutStage(true));
+  document.addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input, textarea")) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (/^[1-9]$/.test(e.key)) { state.type = +e.key; renderPalette(); }
+    else if (e.key === "0" || e.key.toLowerCase() === "n") toggleNA();
+    else if (e.key.toLowerCase() === "c") setMode("box");
+    else if (e.key.toLowerCase() === "p") setMode("pt");
+    else if (e.key === "ArrowLeft") go(-1);
+    else if (e.key === "ArrowRight") go(1);
+  });
+  ["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add("drop"); }));
+  ["dragleave", "drop"].forEach(ev => document.addEventListener(ev, e => {
+    e.preventDefault();
+    if (ev === "dragleave" && e.relatedTarget) return;
+    document.body.classList.remove("drop");
+    if (ev === "drop" && e.dataTransfer) addFiles(e.dataTransfer.files);
+  }));
+
+  // ---------- Foto de ejemplo (dibujada) ----------
+  async function makeSample() {
+    const W = 1200, H = 900;
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const g = cv.getContext("2d");
+    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#3d5a3a"); bg.addColorStop(1, "#1e2f1f");
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    let s = 7; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < 70; i++) {
+      g.save(); g.translate(rnd() * W, rnd() * H); g.rotate(rnd() * Math.PI);
+      g.fillStyle = ["#4f7a3f", "#5f8c48", "#3f6634", "#6c9a52"][i % 4];
+      g.beginPath(); g.ellipse(0, 0, 70 + rnd() * 60, 30 + rnd() * 20, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "rgba(20,40,20,.5)"; g.lineWidth = 2; g.beginPath(); g.moveTo(-90, 0); g.lineTo(90, 0); g.stroke();
+      g.restore();
+    }
+    g.strokeStyle = "#6b4a2e"; g.lineWidth = 14; g.lineCap = "round";
+    g.beginPath(); g.moveTo(120, 880); g.bezierCurveTo(400, 600, 700, 420, 1100, 80); g.stroke();
+    const items = [
+      [300, 690, 1, "#7a5230", 12], [470, 560, 3, "#7fae5a", 18], [520, 610, 3, "#7fae5a", 16],
+      [610, 470, 4, "#f1efe3", 18], [700, 520, 5, "#fafaf5", 30], [760, 380, 5, "#fafaf5", 28],
+      [830, 300, 6, "#b9a48f", 24], [880, 420, 7, "#7cb85a", 20], [960, 220, 8, "#e9a23b", 22], [1010, 160, 9, "#c22a3a", 24],
+    ];
+    for (const [x, y, , col, r] of items) {
+      g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 2; g.stroke();
+    }
+    const blob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.9));
+    return {
+      id: "ejemplo", sample: true, name: "ejemplo_frambueso.jpg", blob, url: URL.createObjectURL(blob), w: W, h: H, na: false, order: 0,
+      marks: items.map(([x, y, t, , r]) => {
+        const s = Math.round(r * 1.5);
+        return { t, x: x - s, y: y - s, w: s * 2, h: s * 2 };
+      }),
+    };
+  }
+
+  // ---------- Inicio ----------
+  async function start() {
+    renderAll();
+    let saved = null;
+    try { saved = await dbTx("readonly", s => s.getAll()); } catch { saved = null; }
+    if (saved && saved.length) {
+      saved.sort((a, b) => (a.order || 0) - (b.order || 0));
+      state.photos = saved.map(p => ({ ...p, url: URL.createObjectURL(p.blob) }));
+    } else {
+      state.photos = [await makeSample()];
+    }
+    state.cur = 0;
+    renderAll();
+  }
+  start();
+})();
+</script>
+
+</body></html>
