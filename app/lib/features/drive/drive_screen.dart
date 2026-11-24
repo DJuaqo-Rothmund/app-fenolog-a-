@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
+import '../../data/drive/data_sync.dart';
 import '../../data/drive/drive_client.dart';
 import '../../data/drive/drive_sync.dart';
 import '../../providers.dart';
@@ -109,6 +110,9 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
         r.uploaded == 1 ? '1 foto subida' : '${r.uploaded} fotos subidas',
         if (r.alreadyThere > 0) '${r.alreadyThere} ya estaban',
         if (r.missing > 0) '${r.missing} sin archivo en el teléfono',
+        if (r.downloaded > 0) r.downloaded == 1 ? '1 foto bajada' : '${r.downloaded} fotos bajadas',
+        if (r.sent > 0) r.sent == 1 ? '1 dato enviado' : '${r.sent} datos enviados',
+        if (r.received > 0) r.received == 1 ? '1 cambio recibido' : '${r.received} cambios recibidos',
         if (r.backupName != null) 'copia de seguridad subida',
       ];
       _message('Listo: ${parts.join(' · ')}.');
@@ -166,7 +170,7 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
                     ),
                   ] else ...[
                     Text(
-                      'Respalda tus fotos y datos en tu Google Drive',
+                      'Sincroniza tus datos y fotos con tu Google Drive',
                       textAlign: TextAlign.center,
                       style: text.titleMedium?.copyWith(color: scheme.onPrimaryContainer),
                     ),
@@ -239,6 +243,7 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
                 _FolderRow(depth: 0, name: DriveSync.rootFolder, note: 'Carpeta principal'),
                 _FolderRow(depth: 1, name: 'Proyecto / Temporada / Semana 07', note: 'Fotos con su nombre estándar'),
                 _FolderRow(depth: 1, name: DriveSync.backupsFolder, note: 'Copias de seguridad (.zip)'),
+                _FolderRow(depth: 1, name: syncDataFolder, note: 'Cambios de cada equipo (teléfono y web)'),
               ],
             ),
             const SectionHeader('Privacidad'),
@@ -247,7 +252,8 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
               child: Text(
                 'La app solo pide permiso para los archivos que ella misma crea: no puede ver ni tocar el resto '
                 'de tu Drive. Sube, pero nunca borra. Sin internet todo sigue funcionando; sincroniza cuando '
-                'tengas conexión.',
+                'tengas conexión. Si un mismo registro se cambió en el teléfono y en la web, queda el cambio '
+                'más reciente.',
               ),
             ),
             if (account != null)

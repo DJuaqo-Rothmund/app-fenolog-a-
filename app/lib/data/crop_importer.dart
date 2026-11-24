@@ -40,7 +40,13 @@ class CropImporter {
       );
       if (crop == null) {
         crop = await db.into(db.crops).insertReturning(cropFields);
-      } else {
+      } else if (crop.shortCode != def.shortCode ||
+          crop.name != def.name ||
+          crop.scientificName != def.scientificName ||
+          crop.seasonStartMonth != def.seasonStartMonth ||
+          crop.seasonStartDay != def.seasonStartDay) {
+        // Solo si cambió: así abrir la app no marca el cultivo como modificado
+        // (lo que lo haría viajar en cada sincronización).
         await (db.update(db.crops)..where((c) => c.id.equals(crop!.id))).write(cropFields);
       }
 

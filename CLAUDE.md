@@ -92,6 +92,12 @@ decisiones, guía de desarrollo).
   diseño de Google, sincronización de una vía de fotos por proyecto/temporada/semana y
   copia de seguridad en `FramBitácora/Respaldos`; permiso `drive.file`. Requiere el
   registro en Google Cloud (pasos y SHA-1 en `docs/05-desarrollo.md`). 87 pruebas pasan.
+- **Avance 4.1 hecho (24-nov): sincronización de datos por Google Drive** entre equipos
+  (`lib/data/drive/data_sync.dart`): cada equipo sube sus cambios a
+  `FramBitácora/datos/<equipo>/`, gana el cambio más reciente, los registros creados en
+  dos equipos se unen (id menor). «Sincronizar ahora» sube fotos, intercambia datos,
+  baja fotos de otros equipos y (opcional) el respaldo. Detalle en `docs/05-desarrollo.md`.
+  94 pruebas pasan. Siguiente: 5.1 (web).
 
 ## Pendientes y preguntas abiertas
 

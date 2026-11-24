@@ -15,37 +15,8 @@ import 'package:frambitacora/domain/project_kind.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import '../fake_drive.dart';
 import '../helpers.dart';
-
-/// Drive en memoria: carpetas y archivos por ruta.
-class FakeDrive implements DriveApi {
-  final folders = <String, String>{'root': ''}; // id → ruta
-  final files = <String, Set<String>>{}; // id carpeta → nombres
-  final uploads = <String>[]; // rutas completas subidas
-
-  @override
-  Future<({String email, String name})> about() async => (email: 'ana@ejemplo.cl', name: 'Ana');
-
-  @override
-  Future<String> folder(String name, {String parentId = 'root'}) async {
-    final path = '${folders[parentId]}/$name';
-    final found = folders.entries.where((e) => e.value == path).firstOrNull;
-    if (found != null) return found.key;
-    final id = 'f${folders.length}';
-    folders[id] = path;
-    return id;
-  }
-
-  @override
-  Future<Set<String>> names(String parentId) async => {...?files[parentId]};
-
-  @override
-  Future<String> upload(File file, {required String name, required String parentId, required String mime}) async {
-    files.putIfAbsent(parentId, () => {}).add(name);
-    uploads.add('${folders[parentId]}/$name');
-    return 'file${uploads.length}';
-  }
-}
 
 void main() {
   group('cliente de Drive', () {

@@ -128,14 +128,44 @@ es lo predeterminado). La elección se guarda con `shared_preferences`
 ## Google Drive
 
 Configuración → **Google Drive**: botón «Continuar con Google» (diseño del sistema de
-Google), y luego «Sincronizar ahora». Sube, en una sola vía (nunca borra en Drive):
+Google), y luego «Sincronizar ahora». Nunca borra nada en Drive. En cada sincronización:
 
 - Fotos: `FramBitácora/<proyecto>/<temporada>/Semana NN/<foto>.jpg`. Cada foto subida
   queda marcada (`photos.upload_status = 'drive'`) y no se repite; si ya existe en la
   carpeta (p. ej. tras reinstalar) solo se marca. Al cambiar de cuenta, todas vuelven a
   quedar pendientes.
+- **Datos entre equipos** (teléfono y web, `lib/data/drive/data_sync.dart`): ver abajo.
+- Fotos que agregó otro equipo: se buscan en Drive por nombre y se descargan.
 - Copia de seguridad completa (opcional): `FramBitácora/Respaldos/*.zip`, con subida
   reanudable (no carga el archivo en memoria).
+
+### Sincronización de datos (avance 4.1)
+
+Google Drive es la «nube» (decisión del dueño, sin servidores). Cada equipo tiene un id
+(`SyncState.deviceId`, guardado en `shared_preferences`) y su carpeta
+`FramBitácora/datos/<equipo>/`, donde sube un JSON por sincronización con las filas que
+cambiaron desde su última subida (`updated_at` en (subidoHasta, ahora]). Nombre del
+archivo: `aaaammddThhmmssZ-uuuuuu.json` (UTC, microsegundos con 6 dígitos: ordenar por
+nombre = ordenar por fecha).
+
+1. **Leer**: los archivos nuevos de los otros equipos (el último leído de cada uno queda
+   en `SyncState.seen`), en orden, cada uno en una transacción con
+   `PRAGMA defer_foreign_keys`.
+2. **Aplicar fila por fila**: si no existe, se inserta; si existe, **gana el
+   `updated_at` más reciente**. Filas con el mismo contenido solo igualan su fecha (no
+   vuelven a viajar). Columnas desconocidas se ignoran (versiones distintas de la app).
+3. **Misma cosa creada en dos equipos** (`syncNaturalKeys`: catálogo del cultivo,
+   registro unidad×semana, semana no muestreada): ambos se quedan con el **id menor**. El
+   equipo con el id mayor cambia su id y el de todo lo que lo apunta (`syncReferences`);
+   el otro anota un alias (`SyncState.aliases`) y reenvía su fila para que el primero se
+   entere.
+4. **Subir** lo cambiado aquí, sin reenviar lo recibido sin cambios.
+
+Los borrados viajan como `deleted_at`. Las fotos subidas avanzan su `updated_at` al
+marcarse `drive` (así el otro equipo sabe que puede bajarlas). Al restaurar una copia se
+vuelve a subir todo (`SyncStateStore.afterRestore`); al cambiar de cuenta de Google se
+empieza de cero (`reset`). Pruebas: `test/data/data_sync_test.dart` (dos equipos con el
+mismo `FakeDrive` de `test/fake_drive.dart`).
 
 Permiso: solo `drive.file` (la app ve únicamente lo que ella crea). Código:
 `lib/data/drive/` (cliente HTTP de Drive v3 y sincronización), `lib/features/drive/`
@@ -157,6 +187,9 @@ está registrada en Google Cloud».
    - Huella SHA-1 de la llave de firma (la de los secretos `ANDROID_KEYSTORE_*`):
      `A0:94:AE:C8:0A:2B:32:82:0C:7E:34:63:3D:B2:6F:B7:7F:BC:B8:F1`
 5. No hay que copiar nada a la app: Google la reconoce por el paquete y la huella.
+6. Para la versión web (etapa 5): otro *ID de cliente de OAuth* tipo **Aplicación web**
+   con el origen autorizado `https://djuaqo-rothmund.github.io`. Ambos clientes, en el
+   mismo proyecto, comparten lo creado con `drive.file`.
 
 ## Guía de fotos
 

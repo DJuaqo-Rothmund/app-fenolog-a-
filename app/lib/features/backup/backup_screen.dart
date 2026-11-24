@@ -106,6 +106,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     final restored = await _run('Restaurando…', () => _service.restore(path));
     if (restored == null || !mounted) return;
+    // Lo restaurado se vuelve a enviar completo en la próxima sincronización.
+    await ref.read(syncStateStoreProvider).afterRestore();
+    if (!mounted) return;
     _message('Copia restaurada: ${restored.projects} proyectos, ${restored.photos} fotos.');
     Navigator.of(context).popUntil((r) => r.isFirst);
   }

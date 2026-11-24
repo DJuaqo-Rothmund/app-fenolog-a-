@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/backup_service.dart';
 import 'data/catalog_repository.dart';
+import 'data/drive/data_sync.dart';
 import 'data/drive/drive_client.dart';
 import 'data/drive/drive_sync.dart';
 import 'data/database.dart';
@@ -151,12 +152,27 @@ final driveApiProvider = Provider<DriveApi>(
   (ref) => DriveClient(ref.watch(httpClientProvider), () => ref.read(googleAuthProvider).token()),
 );
 
+/// Lo que este equipo recuerda de la sincronización (en memoria en las pruebas).
+final syncStateStoreProvider = Provider<SyncStateStore>((ref) {
+  final prefs = ref.watch(preferencesProvider);
+  return prefs == null ? MemorySyncStateStore() : PrefsSyncStateStore(prefs);
+});
+
+final dataSyncProvider = Provider(
+  (ref) => DataSync(
+    db: ref.watch(databaseProvider),
+    drive: ref.watch(driveApiProvider),
+    store: ref.watch(syncStateStoreProvider),
+  ),
+);
+
 final driveSyncProvider = Provider(
   (ref) => DriveSync(
     db: ref.watch(databaseProvider),
     photoStore: ref.watch(photoStoreProvider),
     drive: ref.watch(driveApiProvider),
     backup: ref.watch(backupServiceProvider),
+    data: ref.watch(dataSyncProvider),
   ),
 );
 
@@ -192,8 +208,11 @@ class DriveAccountNotifier extends Notifier<DriveAccount?> {
   Future<void> connect() async {
     await ref.read(googleAuthProvider).token();
     final who = await ref.read(driveApiProvider).about();
-    // Otra cuenta = otro Drive: todas las fotos vuelven a quedar por subir.
-    if (state?.email != who.email) await ref.read(driveSyncProvider).resetUploads();
+    // Otra cuenta = otro Drive: todas las fotos y los datos vuelven a quedar por subir.
+    if (state?.email != who.email) {
+      await ref.read(driveSyncProvider).resetUploads();
+      await ref.read(syncStateStoreProvider).reset();
+    }
     await _prefs?.setString(_email, who.email);
     await _prefs?.setString(_name, who.name);
     await _prefs?.remove(_last);

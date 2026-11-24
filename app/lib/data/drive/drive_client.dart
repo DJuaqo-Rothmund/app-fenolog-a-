@@ -12,6 +12,9 @@ class DriveException implements Exception {
   String toString() => message;
 }
 
+/// Un archivo o carpeta de Drive.
+typedef DriveEntry = ({String id, String name, bool isFolder});
+
 /// Lo que la sincronización necesita de Drive (se reemplaza en las pruebas).
 abstract class DriveApi {
   /// Correo y nombre de la cuenta conectada.
@@ -25,6 +28,18 @@ abstract class DriveApi {
 
   /// Sube un archivo a la carpeta y devuelve su id.
   Future<String> upload(File file, {required String name, required String parentId, required String mime});
+
+  /// Archivos y carpetas que hay dentro de [parentId].
+  Future<List<DriveEntry>> list(String parentId);
+
+  /// Sube un contenido pequeño (p. ej. un archivo de cambios) y devuelve su id.
+  Future<String> uploadBytes(List<int> bytes, {required String name, required String parentId, required String mime});
+
+  /// Descarga el contenido de un archivo.
+  Future<List<int>> download(String fileId);
+
+  /// Id de un archivo (no carpeta) con ese nombre, en cualquier carpeta de la app.
+  Future<String?> findFile(String name);
 }
 
 /// Cliente mínimo de la API de Google Drive v3. Usa solo el permiso
@@ -38,7 +53,7 @@ class DriveClient implements DriveApi {
 
   static const scope = 'https://www.googleapis.com/auth/drive.file';
   static const _api = 'https://www.googleapis.com/drive/v3';
-  static const _upload = 'https://www.googleapis.com/upload/drive/v3/files';
+  static const _uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files';
   static const folderMime = 'application/vnd.google-apps.folder';
 
   Future<Map<String, String>> _headers([Map<String, String> extra = const {}]) async => {
@@ -58,14 +73,14 @@ class DriveClient implements DriveApi {
 
   static String _quote(String s) => s.replaceAll(r'\', r'\\').replaceAll("'", r"\'");
 
-  Future<List<Map<String, dynamic>>> _list(String q) async {
+  Future<List<Map<String, dynamic>>> _list(String q, {bool withType = false}) async {
     final out = <Map<String, dynamic>>[];
     String? page;
     do {
       final uri = Uri.parse('$_api/files').replace(
         queryParameters: {
           'q': q,
-          'fields': 'nextPageToken, files(id, name)',
+          'fields': withType ? 'nextPageToken, files(id, name, mimeType)' : 'nextPageToken, files(id, name)',
           'pageSize': '1000',
           'spaces': 'drive',
           'pageToken': ?page,
@@ -115,13 +130,47 @@ class DriveClient implements DriveApi {
     for (final f in await _list("'${_quote(parentId)}' in parents and trashed = false")) f['name'] as String,
   };
 
+  @override
+  Future<List<DriveEntry>> list(String parentId) async => [
+    for (final f in await _list("'${_quote(parentId)}' in parents and trashed = false", withType: true))
+      (id: f['id'] as String, name: f['name'] as String, isFolder: f['mimeType'] == folderMime),
+  ];
+
+  @override
+  Future<String?> findFile(String name) async {
+    final found = await _list("name = '${_quote(name)}' and mimeType != '$folderMime' and trashed = false");
+    return found.isEmpty ? null : found.first['id'] as String;
+  }
+
+  @override
+  Future<List<int>> download(String fileId) async {
+    final r = await _http.get(
+      Uri.parse('$_api/files/${Uri.encodeComponent(fileId)}?alt=media'),
+      headers: await _headers(),
+    );
+    if (r.statusCode != 200) _fail(r.statusCode, 'descargar un archivo');
+    return r.bodyBytes;
+  }
+
+  @override
+  Future<String> uploadBytes(List<int> bytes, {required String name, required String parentId, required String mime}) =>
+      _upload(Stream.value(bytes), bytes.length, name: name, parentId: parentId, mime: mime);
+
   /// Subida «reanudable»: primero se pide una dirección de subida y luego se envía
   /// el archivo como flujo, sin cargarlo entero en memoria (sirve para respaldos grandes).
   @override
-  Future<String> upload(File file, {required String name, required String parentId, required String mime}) async {
-    final length = await file.length();
+  Future<String> upload(File file, {required String name, required String parentId, required String mime}) async =>
+      _upload(file.openRead(), await file.length(), name: name, parentId: parentId, mime: mime);
+
+  Future<String> _upload(
+    Stream<List<int>> content,
+    int length, {
+    required String name,
+    required String parentId,
+    required String mime,
+  }) async {
     final start = await _http.post(
-      Uri.parse('$_upload?uploadType=resumable&fields=id'),
+      Uri.parse('$_uploadUrl?uploadType=resumable&fields=id'),
       headers: await _headers({
         'Content-Type': 'application/json; charset=UTF-8',
         'X-Upload-Content-Type': mime,
@@ -138,7 +187,7 @@ class DriveClient implements DriveApi {
     final put = http.StreamedRequest('PUT', Uri.parse(location))
       ..headers.addAll({'Content-Type': mime, 'Content-Length': '$length'})
       ..contentLength = length;
-    file.openRead().listen(put.sink.add, onDone: put.sink.close, onError: put.sink.addError);
+    content.listen(put.sink.add, onDone: put.sink.close, onError: put.sink.addError);
     final r = await http.Response.fromStream(await _http.send(put));
     if (r.statusCode != 200 && r.statusCode != 201) _fail(r.statusCode, 'subir «$name»');
     return (jsonDecode(r.body) as Map<String, dynamic>)['id'] as String;

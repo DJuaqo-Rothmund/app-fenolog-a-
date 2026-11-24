@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../backup_service.dart';
 import '../database.dart';
 import '../photo_store.dart';
+import 'data_sync.dart';
 import 'drive_client.dart';
 
 /// Estado de subida de una foto que ya está en Drive (columna `photos.upload_status`).
@@ -13,7 +14,15 @@ const uploadedToDrive = 'drive';
 
 /// Resultado de una sincronización.
 class DriveSyncResult {
-  const DriveSyncResult({required this.uploaded, required this.alreadyThere, required this.missing, this.backupName});
+  const DriveSyncResult({
+    required this.uploaded,
+    required this.alreadyThere,
+    required this.missing,
+    this.backupName,
+    this.received = 0,
+    this.sent = 0,
+    this.downloaded = 0,
+  });
 
   /// Fotos subidas ahora.
   final int uploaded;
@@ -26,6 +35,13 @@ class DriveSyncResult {
 
   /// Nombre del respaldo subido, si se pidió.
   final String? backupName;
+
+  /// Datos (filas) que llegaron de otros equipos y que se enviaron.
+  final int received;
+  final int sent;
+
+  /// Fotos de otros equipos descargadas a este.
+  final int downloaded;
 }
 
 /// Sube a Google Drive las fotos y una copia de seguridad, ordenadas así:
@@ -33,15 +49,19 @@ class DriveSyncResult {
 /// `FramBitácora/<proyecto>/<temporada>/Semana 07/<foto>.jpg`
 /// `FramBitácora/Respaldos/FramBitacora_respaldo_<fecha>.zip`
 ///
-/// Es una subida de una sola vía (el teléfono es la fuente de verdad): no borra
+/// Además intercambia los datos con los otros equipos (teléfono y web, ver
+/// [DataSync]) y descarga las fotos que se agregaron en otro equipo. No borra
 /// nada en Drive y no vuelve a subir lo que ya subió.
 class DriveSync {
-  DriveSync({required this.db, required this.photoStore, required this.drive, required this.backup});
+  DriveSync({required this.db, required this.photoStore, required this.drive, required this.backup, this.data});
 
   final AppDatabase db;
   final PhotoStore photoStore;
   final DriveApi drive;
   final BackupService backup;
+
+  /// Sincronización de datos entre equipos (opcional: sin ella solo se suben fotos).
+  final DataSync? data;
 
   static const rootFolder = 'FramBitácora';
   static const backupsFolder = 'Respaldos';
@@ -113,9 +133,19 @@ ORDER BY pr.name, s.name, o.week_number, ph.file_name''';
         existing[folder]!.add(name);
         uploaded++;
       }
+      // La fecha de cambio avanza: así los otros equipos saben que la foto ya está en Drive.
       await (db.update(db.photos)..where((x) => x.id.equals(r.read<String>('id')))).write(
-        const PhotosCompanion(uploadStatus: Value(uploadedToDrive)),
+        PhotosCompanion(uploadStatus: const Value(uploadedToDrive), updatedAt: Value(DateTime.now())),
       );
+    }
+
+    var received = 0, sent = 0, downloaded = 0;
+    if (data != null) {
+      progress?.call('Intercambiando datos', rows.length, rows.length);
+      final d = await data!.sync(rootFolderId: root);
+      received = d.received;
+      sent = d.sent;
+      downloaded = await downloadMissingPhotos(progress: progress);
     }
 
     String? backupName;
@@ -127,6 +157,37 @@ ORDER BY pr.name, s.name, o.week_number, ph.file_name''';
       backupName = p.basename(zip);
       await drive.upload(File(zip), name: backupName, parentId: folder, mime: 'application/zip');
     }
-    return DriveSyncResult(uploaded: uploaded, alreadyThere: already, missing: missing, backupName: backupName);
+    return DriveSyncResult(
+      uploaded: uploaded,
+      alreadyThere: already,
+      missing: missing,
+      backupName: backupName,
+      received: received,
+      sent: sent,
+      downloaded: downloaded,
+    );
+  }
+
+  /// Descarga las fotos que están en Drive pero no en este equipo (las que se
+  /// agregaron en otro). Devuelve cuántas bajó.
+  Future<int> downloadMissingPhotos({void Function(String step, int done, int total)? progress}) async {
+    final rows = await (db.select(
+      db.photos,
+    )..where((p) => p.deletedAt.isNull() & p.uploadStatus.equals(uploadedToDrive))).get();
+    final missing = [
+      for (final p in rows)
+        if (!await photoStore.file(p.localPath).exists()) p,
+    ];
+    var done = 0;
+    for (final (i, p) in missing.indexed) {
+      progress?.call('Bajando fotos', i, missing.length);
+      final id = await drive.findFile(p.fileName);
+      if (id == null) continue;
+      final file = photoStore.file(p.localPath);
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(await drive.download(id), flush: true);
+      done++;
+    }
+    return done;
   }
 }

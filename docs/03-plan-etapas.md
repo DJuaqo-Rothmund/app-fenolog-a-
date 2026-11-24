@@ -14,8 +14,8 @@ rehacer nada.
 | **1 · MVP sin conexión** | Ver detalle abajo. | ✅ Primera versión lista para probar. |
 | **2 · Mediciones y datos** | Mediciones definidas por el usuario (planilla editable), parámetros por variedad, exportar a Excel, importar temporadas anteriores desde CSV, copia de seguridad local completa. | Datos completos y portables. |
 | **3 · Informes** | Línea de tiempo con curva fenológica, informes PDF (semanal, período, ficha por variedad, matriz comparativa), compartir por WhatsApp/correo. Luego comparación de tratamientos (ANOVA, LSD). | Informes para entregar. |
-| **4 · Nube y sincronización** | Usuarios (Google + correo), Supabase, sincronización entre teléfonos, cola de subida de fotos (solo Wi-Fi opcional), roles por organización. | Varios teléfonos trabajando juntos. |
-| **5 · Web** | Misma app en el navegador: consulta, edición en oficina, informes. | Acceso desde computador. |
+| **4 · Nube y sincronización** | Google Drive del dueño como nube (sin servidores): datos y fotos entre teléfono y web. Un usuario por ahora. | Teléfono y web con los mismos datos. |
+| **5 · Web** | Misma app en el navegador (GitHub Pages): subir fotos, elegir BBCH, corregir, informes, matriz y timeline interactivo. | Acceso desde computador. |
 | **6 · IA en el teléfono** | Sugerencia top-3 del estadio desde la foto de detalle, reglas agronómicas (no retroceder, ritmo semanal), registro de aceptado/corregido, modelo descargable por cultivo. | IA que ayuda en terreno. |
 | **7 · Cuenta maestra** | Consentimiento por usuario, vista de entrenamiento, exportación del conjunto de datos, entrenamiento en Python y publicación de nuevos modelos. | IA que mejora con los datos de todos. |
 | **8 · Extras** | Recordatorio semanal, mapas sin conexión, juego de entrenamiento de IA, segundo cultivo de prueba, iPhone en tiendas. | |
@@ -62,3 +62,17 @@ completar la semana (hoy es un mensaje con ícono).
 | 3.1b | Avance de la temporada en la app (grilla con colores), alertas de posibles errores y corrección directa antes del informe | ✅ Hecho |
 | 3.2 | Ficha por variedad con curva fenológica | Pendiente |
 | 3.3 | Mediciones en los informes (cuando exista el avance 2.2) y comparación de tratamientos | Pendiente |
+
+## Etapa 4 · Nube por Google Drive (detalle)
+
+| Avance | Contenido | Estado |
+|---|---|---|
+| 4.1 | Sincronización de datos entre equipos por Drive (cambios por equipo, gana el más reciente, unión de registros duplicados) y descarga de fotos de otros equipos | ✅ Hecho |
+| 4.2 | Sincronización automática (al abrir la app y cada cierto tiempo con internet) | Pendiente |
+
+## Etapa 5 · Web (detalle)
+
+| Avance | Contenido | Estado |
+|---|---|---|
+| 5.1 | App en el navegador (GitHub Pages): inicio con Google, subir fotos, elegir BBCH, corregir, informes y matriz | Pendiente |
+| 5.2 | Timeline interactivo por variedad o tratamiento (web y teléfono) | Pendiente |

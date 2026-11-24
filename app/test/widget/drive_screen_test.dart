@@ -10,7 +10,7 @@ import 'package:frambitacora/features/drive/google_auth.dart';
 import 'package:frambitacora/providers.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import '../data/drive_test.dart' show FakeDrive;
+import '../fake_drive.dart';
 import '../helpers.dart';
 
 class _FakeAuth implements GoogleAuth {
@@ -106,7 +106,10 @@ void main() {
     await tester.tap(find.text('Sincronizar ahora'));
     await settle(tester);
     expect(find.textContaining('Listo: 0 fotos subidas'), findsOneWidget);
-    expect(drive.uploads.single, startsWith('/FramBitácora/Respaldos/'));
+    expect(find.textContaining('datos enviados'), findsOneWidget, reason: 'el catálogo viaja la primera vez');
+    expect(drive.uploads, hasLength(2));
+    expect(drive.uploads.first, startsWith('/FramBitácora/datos/'));
+    expect(drive.uploads.last, startsWith('/FramBitácora/Respaldos/'));
     expect(find.textContaining('Última sincronización'), findsOneWidget);
 
     await tester.tap(find.text('Cambiar cuenta de Google'));
