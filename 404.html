@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Se reemplaza por el valor de `--base-href` al compilar (p. ej. /app-fenolog-a-/). -->
+  <base href="/app-fenolog-a-/">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FramBitácora: seguimiento fenológico de frambueso, sincronizado con el teléfono por Google Drive.">
+  <meta name="theme-color" content="#2F6B3A">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FramBitácora">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <title>FramBitácora</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; height: 100%; background: #FFF8EC; }
+    #carga {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      font-family: system-ui, sans-serif; color: #2F6B3A;
+    }
+    #carga img { width: 120px; height: 120px; }
+    #carga p { margin: 0; font-size: 15px; opacity: .8; }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #141A15; }
+      #carga { color: #A9D8A6; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de carga: se quita sola cuando la app dibuja su primera pantalla. -->
+  <div id="carga"><img src="logo.svg" alt=""><p>Cargando FramBitácora…</p></div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var c = document.getElementById('carga');
+      if (c) c.remove();
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
