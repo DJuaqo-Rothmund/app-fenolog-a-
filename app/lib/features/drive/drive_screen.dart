@@ -108,7 +108,7 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
           );
       await ref.read(driveAccountProvider.notifier).markSynced(DateTime.now());
       final parts = [
-        r.uploaded == 1 ? '1 foto subida' : '${r.uploaded} fotos subidas',
+        if (!kIsWeb) r.uploaded == 1 ? '1 foto subida' : '${r.uploaded} fotos subidas',
         if (r.alreadyThere > 0) '${r.alreadyThere} ya estaban',
         if (r.missing > 0) '${r.missing} sin archivo en el teléfono',
         if (r.downloaded > 0) r.downloaded == 1 ? '1 foto bajada' : '${r.downloaded} fotos bajadas',
@@ -116,7 +116,14 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
         if (r.received > 0) r.received == 1 ? '1 cambio recibido' : '${r.received} cambios recibidos',
         if (r.backupName != null) 'copia de seguridad subida',
       ];
-      _message('Listo: ${parts.join(' · ')}.');
+      _message(
+        r.otherDevices == 0 && kIsWeb
+            ? 'Aún no hay datos del teléfono en Drive. En el teléfono, con la versión más nueva de la app: '
+                  'Configuración → Google Drive → Sincronizar ahora. Luego sincroniza aquí otra vez.'
+            : parts.isEmpty
+            ? 'Listo: sin cambios nuevos.'
+            : 'Listo: ${parts.join(' · ')}.',
+      );
     } on GoogleAuthException catch (e) {
       _message(e.message, error: true);
     } on DriveException catch (e) {

@@ -135,13 +135,16 @@ class PrefsSyncStateStore extends SyncStateStore {
 
 /// Resultado de sincronizar los datos.
 class DataSyncResult {
-  const DataSyncResult({required this.received, required this.sent});
+  const DataSyncResult({required this.received, required this.sent, this.otherDevices = 0});
 
   /// Filas que cambiaron aquí por cambios de otros equipos.
   final int received;
 
   /// Filas de este equipo subidas a Drive.
   final int sent;
+
+  /// Cuántos otros equipos han dejado datos en Drive.
+  final int otherDevices;
 }
 
 /// Sincroniza la base entre equipos usando Google Drive como punto de encuentro.
@@ -166,7 +169,8 @@ class DataSync {
 
     // 1. Leer lo nuevo de los otros equipos, en orden de creación.
     final pending = <({String device, DriveEntry file})>[];
-    for (final dev in (await drive.list(dataFolder)).where((e) => e.isFolder && e.name != state.deviceId)) {
+    final others = (await drive.list(dataFolder)).where((e) => e.isFolder && e.name != state.deviceId).toList();
+    for (final dev in others) {
       final last = state.seen[dev.name] ?? '';
       for (final f in await drive.list(dev.id)) {
         if (!f.isFolder && f.name.endsWith('.json') && f.name.compareTo(last) > 0) {
@@ -206,7 +210,7 @@ class DataSync {
     }
     state.lastPush = until;
     await store.save(state);
-    return DataSyncResult(received: received, sent: sent);
+    return DataSyncResult(received: received, sent: sent, otherDevices: others.length);
   }
 
   /// Nombre del archivo de cambios: ordena por fecha (UTC) al ordenar por nombre.

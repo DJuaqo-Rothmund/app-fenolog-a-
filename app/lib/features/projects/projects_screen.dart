@@ -113,19 +113,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 hasScrollBody: false,
                 child: kIsWeb
                     // En la web, los datos llegan desde el teléfono a través de Drive.
-                    ? EmptyState(
-                        icon: Icons.cloud_sync_outlined,
-                        illustration: const EmptyIllustration(),
-                        message:
-                            'Conecta tu Google Drive para traer los proyectos que registraste en el teléfono.\n'
-                            '(En el teléfono: Configuración → Google Drive → Sincronizar ahora.)',
-                        action: FilledButton.icon(
-                          onPressed: () =>
-                              Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const DriveScreen())),
-                          icon: const Icon(Icons.cloud_outlined),
-                          label: const Text('Conectar Google Drive'),
-                        ),
-                      )
+                    ? const _WebEmptyState()
                     : const EmptyState(
                         icon: Icons.eco_outlined,
                         illustration: EmptyIllustration(),
@@ -255,6 +243,74 @@ class _CurrentWeek extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Inicio vacío en la web: invita a conectar Drive o, si ya está conectado, a
+/// traer los datos del teléfono.
+class _WebEmptyState extends ConsumerStatefulWidget {
+  const _WebEmptyState();
+
+  @override
+  ConsumerState<_WebEmptyState> createState() => _WebEmptyStateState();
+}
+
+class _WebEmptyStateState extends ConsumerState<_WebEmptyState> {
+  bool _busy = false;
+
+  Future<void> _sync() async {
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final r = await ref.read(driveSyncProvider).sync(includeBackup: false);
+      await ref.read(driveAccountProvider.notifier).markSynced(DateTime.now());
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            r.otherDevices == 0
+                ? 'Todavía no hay datos del teléfono en tu Drive. Sincroniza primero en el teléfono.'
+                : 'Listo: ${r.received} cambios recibidos.',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('No se pudo sincronizar: $e')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final account = ref.watch(driveAccountProvider);
+    if (account == null) {
+      return EmptyState(
+        icon: Icons.cloud_sync_outlined,
+        illustration: const EmptyIllustration(),
+        message: 'Conecta tu Google Drive para traer los proyectos que registraste en el teléfono.',
+        action: FilledButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const DriveScreen())),
+          icon: const Icon(Icons.cloud_outlined),
+          label: const Text('Conectar Google Drive'),
+        ),
+      );
+    }
+    return EmptyState(
+      icon: Icons.cloud_sync_outlined,
+      illustration: const EmptyIllustration(),
+      message:
+          'Drive conectado (${account.email}), pero aún no llegan proyectos del teléfono.\n\n'
+          '1. En el teléfono, con la versión más nueva de la app: Configuración → Google Drive → '
+          'Sincronizar ahora.\n'
+          '2. Luego toca «Traer datos del teléfono».',
+      action: FilledButton.icon(
+        onPressed: _busy ? null : _sync,
+        icon: _busy
+            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Icon(Icons.sync),
+        label: const Text('Traer datos del teléfono'),
+      ),
     );
   }
 }

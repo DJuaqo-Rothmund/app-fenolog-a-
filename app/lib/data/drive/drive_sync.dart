@@ -23,6 +23,7 @@ class DriveSyncResult {
     this.received = 0,
     this.sent = 0,
     this.downloaded = 0,
+    this.otherDevices = 0,
   });
 
   /// Fotos subidas ahora.
@@ -43,6 +44,9 @@ class DriveSyncResult {
 
   /// Fotos de otros equipos descargadas a este.
   final int downloaded;
+
+  /// Otros equipos (teléfono o web) que ya dejaron datos en Drive.
+  final int otherDevices;
 }
 
 /// Sube a Google Drive las fotos y una copia de seguridad, ordenadas así:
@@ -137,7 +141,14 @@ WHERE ph.id = ?''',
     if (kIsWeb) {
       progress?.call('Intercambiando datos', 0, 0);
       final d = await data?.sync(rootFolderId: await drive.folder(rootFolder));
-      return DriveSyncResult(uploaded: 0, alreadyThere: 0, missing: 0, received: d?.received ?? 0, sent: d?.sent ?? 0);
+      return DriveSyncResult(
+        uploaded: 0,
+        alreadyThere: 0,
+        missing: 0,
+        received: d?.received ?? 0,
+        sent: d?.sent ?? 0,
+        otherDevices: d?.otherDevices ?? 0,
+      );
     }
     final rows = await db.customSelect(_pendingSql, variables: [Variable.withString(uploadedToDrive)]).get();
     final root = await drive.folder(rootFolder);
@@ -178,12 +189,13 @@ WHERE ph.id = ?''',
       );
     }
 
-    var received = 0, sent = 0, downloaded = 0;
+    var received = 0, sent = 0, downloaded = 0, others = 0;
     if (data != null) {
       progress?.call('Intercambiando datos', rows.length, rows.length);
       final d = await data!.sync(rootFolderId: root);
       received = d.received;
       sent = d.sent;
+      others = d.otherDevices;
       downloaded = await downloadMissingPhotos(progress: progress);
     }
 
@@ -204,6 +216,7 @@ WHERE ph.id = ?''',
       received: received,
       sent: sent,
       downloaded: downloaded,
+      otherDevices: others,
     );
   }
 
