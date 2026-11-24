@@ -29,7 +29,8 @@ estadios, colores) se define en un JSON en `app/assets/crops/`.
 | Volumen | ≈ 500 fotos por temporada |
 | Base local | SQLite con **Drift**; todas las tablas con UUID, `created_at`, `updated_at`, `deleted_at` (listas para sincronizar) |
 | Estado | **Riverpod 3** (providers en `app/lib/providers.dart`) |
-| Nube (etapa 4) | Supabase + **PowerSync** recomendado (motor propio como alternativa; el dueño aún no confirma) |
+| Nube (etapa 4) | **Google Drive del dueño** como nube (decidido 24-nov): sin Supabase ni PowerSync. Un solo usuario por ahora (el dueño) |
+| Web (etapa 5) | La misma app Flutter compilada para web, publicada en **GitHub Pages**; se sincroniza con el teléfono vía Drive |
 | IA (etapa 6) | Clasificador ligero (MobileNetV3 / EfficientNet-Lite) → TFLite. No usar YOLO de Ultralytics (AGPL) |
 | Fotos | `aaaammdd_<CULTIVO>_<UNIDAD>_<G|D|X><n>.jpg`, 2048 px, calidad 85 |
 | Semana 1 | Lunes de la semana que contiene el 7-sep (configurable por temporada) |
@@ -101,14 +102,13 @@ decisiones, guía de desarrollo).
 2. **Historial de `main`**: el dueño pidió que no queden rastros de documentos de
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
-3. Confirmar PowerSync vs. motor de sincronización propio antes de la etapa 4.
+3. Sincronización: **resuelto, vía Google Drive** (ver Decisiones). Requiere además un ID de
+   cliente OAuth **Web** con el origen `https://djuaqo-rothmund.github.io`.
 5. **Registro de Google Cloud para Drive**: el dueño debe crear el ID de cliente OAuth
    Android con el paquete y la SHA-1 de `docs/05-desarrollo.md`; sin eso el botón de
    Google muestra un aviso.
-6. **Rama paralela `claude/funny-hypatia-g54ifr`** (30-oct, otra conversación): tiene
-   etapas 2–5 hechas de otra forma (mediciones, Excel/CSV, Drive, servidor propio, web) y
-   firma con una llave de pruebas distinta. No está unida a esta rama; decidir con el
-   dueño qué rescatar de ahí (p. ej. mediciones, Excel/CSV).
+6. **Rama paralela `claude/funny-hypatia-g54ifr`**: el dueño decidió **no usarla** (ni
+   otros chats). Todo se construye en esta rama.
 4. Preguntas abiertas de la etapa 2 (sin respuesta aún): qué mediciones usa; un valor o
    varias muestras por unidad y semana; qué es la medición «imagen»; campos y unidades de
    los parámetros por variedad (¿por variedad o por unidad?); formato de los datos
@@ -122,6 +122,10 @@ decisiones, guía de desarrollo).
 - Parámetros por variedad y temporada (rendimiento, cañas, laterales, campos propios).
 - Exportar la temporada a Excel (.xlsx); importar temporadas anteriores desde CSV/ZIP.
 - Copia de seguridad local completa (datos + fotos) y restauración.
+- Próximo (pedido 24-nov): sincronización por Drive (4.1), versión web (5.1) con subir
+  fotos, elegir BBCH, corregir, informes y matriz, y **timeline interactivo** (5.2): una
+  fila por variedad/tratamiento con la barra de estadios por semana, fotos al tocar,
+  deslizador de semanas, comparar 2–3 unidades e hitos.
 - Después: etapa 3 (informes PDF, línea de tiempo), 4 (nube), 5 (web), 6 (IA), 7 (cuenta
   maestra con consentimiento), 8 (extras). Ver `docs/03-plan-etapas.md`.
 
