@@ -172,6 +172,21 @@ Permiso: solo `drive.file` (la app ve únicamente lo que ella crea). Código:
 (inicio de sesión con `google_sign_in` y pantalla). En pruebas se reemplazan
 `googleAuthProvider` y `driveApiProvider`.
 
+### Sincronización automática (avance 4.2)
+
+`lib/features/drive/auto_sync.dart`. `AutoSyncWatcher` envuelve la app (`builder` de
+`MaterialApp`) y sincroniza sola con Drive conectado: al abrir, al volver a la app, cada
+10 min y 2 min después del último cambio local (`tableUpdates`), con al menos 1 min entre
+dos automáticas (`AutoSyncRules`). Sin respaldo `.zip` (es manual).
+
+`SyncCoordinator` ordena todas las sincronizaciones (manual y automática): nunca corren
+dos a la vez. La automática no abre ventanas de Google (`PromptPolicy` →
+`GoogleAuth.token(interactive: false)`); si la sesión venció, deja el aviso en
+`SyncStatus.problem` (se ve en Configuración → Google Drive). Sin internet, falla en
+silencio y reintenta en la próxima vuelta. Interruptor «Sincronizar automáticamente»
+(`autoSyncEnabledProvider`, preferencia `sincronizacion_automatica`; apagada en las
+pruebas, que no tienen preferencias).
+
 ## Versión web (avance 5.1)
 
 La misma app compilada para el navegador y publicada en GitHub Pages:

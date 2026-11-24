@@ -19,7 +19,7 @@ class _FakeAuth implements GoogleAuth {
   bool fail = false;
 
   @override
-  Future<String> token() async {
+  Future<String> token({bool interactive = true}) async {
     if (fail) throw GoogleAuthException('Se canceló la conexión con Google.');
     tokens++;
     return 'token';

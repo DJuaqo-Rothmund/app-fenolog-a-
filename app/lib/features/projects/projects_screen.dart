@@ -10,6 +10,7 @@ import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../drive/auto_sync.dart';
 import '../drive/drive_screen.dart';
 import '../settings/settings_screen.dart';
 import 'project_form_screen.dart';
@@ -263,8 +264,8 @@ class _WebEmptyStateState extends ConsumerState<_WebEmptyState> {
     setState(() => _busy = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final r = await ref.read(driveSyncProvider).sync(includeBackup: false);
-      await ref.read(driveAccountProvider.notifier).markSynced(DateTime.now());
+      final r = await ref.read(syncCoordinatorProvider.notifier).run();
+      if (r == null) return; // ya había una sincronización en curso
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -305,7 +306,7 @@ class _WebEmptyStateState extends ConsumerState<_WebEmptyState> {
           'Sincronizar ahora.\n'
           '2. Luego toca «Traer datos del teléfono».',
       action: FilledButton.icon(
-        onPressed: _busy ? null : _sync,
+        onPressed: _busy || ref.watch(syncCoordinatorProvider).running ? null : _sync,
         icon: _busy
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
             : const Icon(Icons.sync),

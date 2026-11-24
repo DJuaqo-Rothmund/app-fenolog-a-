@@ -154,8 +154,18 @@ final googleAuthProvider = Provider<GoogleAuth>((ref) => GoogleSignInAuth());
 /// Conexión a internet para Drive (se reemplaza en las pruebas).
 final httpClientProvider = Provider<http.Client>((ref) => http.Client());
 
+/// Si se puede abrir la ventana de Google (no durante la sincronización automática).
+class PromptPolicy {
+  bool allowPrompt = true;
+}
+
+final promptPolicyProvider = Provider((ref) => PromptPolicy());
+
 final driveApiProvider = Provider<DriveApi>(
-  (ref) => DriveClient(ref.watch(httpClientProvider), () => ref.read(googleAuthProvider).token()),
+  (ref) => DriveClient(
+    ref.watch(httpClientProvider),
+    () => ref.read(googleAuthProvider).token(interactive: ref.read(promptPolicyProvider).allowPrompt),
+  ),
 );
 
 /// Lo que este equipo recuerda de la sincronización (en memoria en las pruebas).

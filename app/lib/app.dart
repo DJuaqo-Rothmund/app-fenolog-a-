@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'features/drive/auto_sync.dart';
 import 'features/projects/projects_screen.dart';
 import 'providers.dart';
 
@@ -92,6 +93,8 @@ class FramBitacoraApp extends ConsumerWidget {
       locale: const Locale('es'),
       supportedLocales: const [Locale('es')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      // Sincroniza con Drive sola (al abrir, al volver, cada 10 min y tras cambios).
+      builder: (context, child) => AutoSyncWatcher(child: child ?? const SizedBox()),
       home: const ProjectsScreen(),
     );
   }

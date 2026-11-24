@@ -68,7 +68,7 @@ completar la semana (hoy es un mensaje con ícono).
 | Avance | Contenido | Estado |
 |---|---|---|
 | 4.1 | Sincronización de datos entre equipos por Drive (cambios por equipo, gana el más reciente, unión de registros duplicados) y descarga de fotos de otros equipos | ✅ Hecho |
-| 4.2 | Sincronización automática (al abrir la app y cada cierto tiempo con internet) | Pendiente |
+| 4.2 | Sincronización automática (al abrir, al volver, cada 10 min y tras cambios; sin abrir ventanas de Google) | ✅ Hecho |
 
 ## Etapa 5 · Web (detalle)
 

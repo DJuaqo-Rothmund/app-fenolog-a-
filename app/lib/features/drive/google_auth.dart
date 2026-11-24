@@ -9,17 +9,22 @@ const webClientId = '762681085693-litedc00bnbtumhd47penngrvtehcoij.apps.googleus
 
 /// Error comprensible al conectar con Google.
 class GoogleAuthException implements Exception {
-  GoogleAuthException(this.message);
+  GoogleAuthException(this.message, {this.needsUser = false});
   final String message;
+
+  /// Hace falta que la persona toque un botón (la sincronización automática no
+  /// abre ventanas de Google por su cuenta).
+  final bool needsUser;
   @override
   String toString() => message;
 }
 
 /// Permiso de Google para escribir en Drive (se reemplaza en las pruebas).
 abstract class GoogleAuth {
-  /// Token de acceso a Drive. Si hace falta, muestra el selector de cuentas y
-  /// el permiso de Google.
-  Future<String> token();
+  /// Token de acceso a Drive. Si hace falta y [interactive] lo permite, muestra
+  /// el selector de cuentas y el permiso de Google; si no, lanza
+  /// [GoogleAuthException] con `needsUser`.
+  Future<String> token({bool interactive = true});
 
   /// Olvida la cuenta y el permiso (para cambiar de cuenta o desconectar).
   Future<void> signOut();
@@ -42,14 +47,16 @@ class GoogleSignInAuth implements GoogleAuth {
   }
 
   @override
-  Future<String> token() async {
+  Future<String> token({bool interactive = true}) async {
     if (_token != null && DateTime.now().difference(_tokenAt!) < const Duration(minutes: 45)) return _token!;
     try {
       await _init();
       final client = GoogleSignIn.instance.authorizationClient;
-      final authz =
-          await client.authorizationForScopes(const [DriveClient.scope]) ??
-          await client.authorizeScopes(const [DriveClient.scope]);
+      final silent = await client.authorizationForScopes(const [DriveClient.scope]);
+      if (silent == null && !interactive) {
+        throw GoogleAuthException('Toca «Sincronizar ahora» para volver a conectar con Google.', needsUser: true);
+      }
+      final authz = silent ?? await client.authorizeScopes(const [DriveClient.scope]);
       _token = authz.accessToken;
       _tokenAt = DateTime.now();
       return _token!;

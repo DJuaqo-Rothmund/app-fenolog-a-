@@ -102,7 +102,11 @@ decisiones, guía de desarrollo).
   (flujo `.github/workflows/web.yml` → rama `gh-pages`). Fotos leídas/subidas directo
   en Drive, base SQLite WebAssembly en el navegador, sin respaldo `.zip`. ID de cliente
   web en `lib/features/drive/google_auth.dart`. Detalle en `docs/05-desarrollo.md`.
-  96 pruebas pasan. Siguiente: 5.2 (timeline) y 5.1b (pantallas para PC).
+  96 pruebas pasan.
+- **Avance 4.2 hecho (24-nov): sincronización automática** (`features/drive/auto_sync.dart`):
+  al abrir, al volver, cada 10 min y 2 min tras cambios; nunca dos a la vez; la
+  automática no abre ventanas de Google (deja aviso). Interruptor en Configuración →
+  Google Drive. 100 pruebas pasan. Siguiente: 5.2 (timeline) y 5.1b (pantallas para PC).
 
 ## Pendientes y preguntas abiertas
 

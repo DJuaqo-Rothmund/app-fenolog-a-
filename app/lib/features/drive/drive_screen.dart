@@ -9,6 +9,7 @@ import '../../data/drive/drive_client.dart';
 import '../../data/drive/drive_sync.dart';
 import '../../providers.dart';
 import '../common.dart';
+import 'auto_sync.dart';
 import 'google_auth.dart';
 
 final _when = DateFormat("d 'de' MMMM, HH:mm", 'es');
@@ -99,14 +100,17 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
     setState(() => _progress = (step: 'Preparando', done: 0, total: 0));
     try {
       final r = await ref
-          .read(driveSyncProvider)
-          .sync(
+          .read(syncCoordinatorProvider.notifier)
+          .run(
             includeBackup: _includeBackup,
             progress: (step, done, total) {
               if (mounted) setState(() => _progress = (step: step, done: done, total: total));
             },
           );
-      await ref.read(driveAccountProvider.notifier).markSynced(DateTime.now());
+      if (r == null) {
+        _message('Ya se está sincronizando sola; espera un momento y vuelve a intentarlo.');
+        return;
+      }
       final parts = [
         if (!kIsWeb) r.uploaded == 1 ? '1 foto subida' : '${r.uploaded} fotos subidas',
         if (r.alreadyThere > 0) '${r.alreadyThere} ya estaban',
@@ -141,7 +145,9 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
     final pending = ref.watch(drivePendingProvider).value;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final busy = _connecting || _progress != null;
+    final status = ref.watch(syncCoordinatorProvider);
+    final auto = ref.watch(autoSyncEnabledProvider);
+    final busy = _connecting || _progress != null || status.running;
 
     return PopScope(
       canPop: _progress == null,
@@ -208,11 +214,28 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
                           : '$pending fotos por subir',
                     ),
                     subtitle: Text(
-                      account.lastSync == null
+                      status.running && _progress == null
+                          ? 'Sincronizando…'
+                          : account.lastSync == null
                           ? 'Aún no se ha sincronizado'
                           : 'Última sincronización: ${_when.format(account.lastSync!)}',
                     ),
                   ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.sync),
+                    title: const Text('Sincronizar automáticamente'),
+                    subtitle: const Text(
+                      'Al abrir la app, al volver a ella, cada 10 minutos y poco después de cada cambio '
+                      '(sin la copia de seguridad, que es manual)',
+                    ),
+                    value: auto,
+                    onChanged: (v) => ref.read(autoSyncEnabledProvider.notifier).set(v),
+                  ),
+                  if (status.problem case final problem?)
+                    ListTile(
+                      leading: Icon(Icons.info_outline, color: scheme.error),
+                      title: Text(problem, style: TextStyle(color: scheme.error)),
+                    ),
                   if (!kIsWeb)
                     SwitchListTile(
                       secondary: const Icon(Icons.backup_outlined),
