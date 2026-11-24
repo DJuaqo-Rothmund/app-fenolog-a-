@@ -1,0 +1,72 @@
+name: Web
+
+# Compila la versión web y la publica en GitHub Pages (rama `gh-pages`).
+# Dirección: https://<usuario>.github.io/<repositorio>/
+on:
+  push:
+    branches: [main, claude/frambita-etapa-2-plan-4v5wwj]
+  workflow_dispatch:
+
+permissions:
+  contents: write # para publicar en la rama gh-pages
+
+concurrency:
+  group: web-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Motor SQLite para el navegador
+        # La base de la web es SQLite compilado a WebAssembly (sqlite3.wasm, de las
+        # versiones publicadas del paquete sqlite3) más el «worker» de drift, que
+        # viene dentro del paquete drift. Las versiones salen de pubspec.lock.
+        run: |
+          version() { awk -v p="  $1:" '$0==p{f=1} f&&/version:/{gsub(/"/,"",$2); print $2; exit}' pubspec.lock; }
+          SQLITE=$(version sqlite3)
+          DRIFT=$(version drift)
+          echo "sqlite3 $SQLITE · drift $DRIFT"
+          curl -fsSL -o web/sqlite3.wasm "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-$SQLITE/sqlite3.wasm"
+          WORKER=$(find "${PUB_CACHE:-$HOME/.pub-cache}" -path "*/drift-$DRIFT/drift_worker.js" | head -1)
+          test -n "$WORKER" || { echo "No se encontró drift_worker.js de drift $DRIFT"; exit 1; }
+          cp "$WORKER" web/drift_worker.js
+          ls -l web/sqlite3.wasm web/drift_worker.js
+
+      - name: Compilar
+        # Todo incluido en la página (sin bajar el motor gráfico desde otro servidor).
+        run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Guardar la compilación
+        uses: actions/upload-artifact@v4
+        with:
+          name: frambitacora-web-${{ github.run_number }}
+          path: app/build/web
+
+      - name: Publicar en GitHub Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd build/web
+          touch .nojekyll
+          cp index.html 404.html
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
+            commit -q -m "Web publicada desde ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+          echo "Publicada en https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${{ github.event.repository.name }}/" >> "$GITHUB_STEP_SUMMARY"

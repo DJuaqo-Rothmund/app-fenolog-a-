@@ -172,6 +172,30 @@ Permiso: solo `drive.file` (la app ve únicamente lo que ella crea). Código:
 (inicio de sesión con `google_sign_in` y pantalla). En pruebas se reemplazan
 `googleAuthProvider` y `driveApiProvider`.
 
+## Versión web (avance 5.1)
+
+La misma app compilada para el navegador y publicada en GitHub Pages:
+`https://djuaqo-rothmund.github.io/app-fenolog-a-/`. La publica el flujo
+`.github/workflows/web.yml` en cada subida a la rama (rama `gh-pages`; en el repositorio,
+*Settings → Pages → Deploy from a branch → gh-pages / (root)*, una sola vez).
+
+Diferencias con el teléfono (`kIsWeb`):
+
+- **Base**: SQLite en WebAssembly guardado en el navegador (`web/sqlite3.wasm` y
+  `web/drift_worker.js`, que agrega la compilación; no se suben al repositorio).
+- **Fotos**: no hay carpeta; se leen desde Drive por su nombre (`DrivePhotoSource`,
+  `PhotoImage`). Las fotos que se agregan en la web se suben **al instante** a la carpeta
+  de su semana (`DriveSync.uploadPhotoBytes`); el teléfono las baja al sincronizar.
+- **Sincronizar** solo intercambia datos (no hay respaldo `.zip` ni fotos locales).
+  Sin Drive conectado, el inicio ofrece «Conectar Google Drive».
+- **Informes**: mismos PDF, armados en el mismo hilo (el navegador no tiene isolates).
+- **Inicio de sesión**: ID de cliente web en `google_auth.dart` (`webClientId`).
+- La restauración de copias abre la base del `.zip` con `lib/platform/file_database.dart`
+  (importación condicional: nativa en el teléfono, no disponible en la web).
+
+Probar en local: `flutter build web --no-web-resources-cdn` tras copiar los dos archivos
+del motor (ver el flujo) y servir `build/web` con cualquier servidor estático.
+
 ### Registro en Google Cloud (una sola vez, lo hace el dueño)
 
 Sin este registro, «Continuar con Google» muestra «Esta versión de la app todavía no

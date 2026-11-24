@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
 
 import '../domain/photo_naming.dart';
@@ -7,16 +5,21 @@ import '../domain/project_kind.dart';
 import '../domain/season_weeks.dart';
 import '../reports/report_models.dart';
 import 'database.dart';
+import 'photo_source.dart';
 import 'photo_store.dart';
 
-/// Reduce una foto para el PDF (devuelve JPEG) o `null` si no se puede leer.
-typedef PhotoShrinker = Future<Uint8List?> Function(File file);
+/// Reduce una foto para el PDF (recibe la foto original, devuelve JPEG) o `null`
+/// si no se puede leer.
+typedef PhotoShrinker = Future<Uint8List?> Function(Uint8List original);
 
 /// Reúne desde la base los datos de cada informe.
 class ReportRepository {
-  ReportRepository(this.db, this.photoStore);
+  ReportRepository(this.db, PhotoStore photoStore, {PhotoSource? source})
+    : source = source ?? FilePhotoSource(photoStore);
   final AppDatabase db;
-  final PhotoStore photoStore;
+
+  /// De dónde se leen las fotos (carpeta del teléfono o Drive en la web).
+  final PhotoSource source;
 
   Future<ReportHeader> _header(Project project, Season season, List<Unit> units, DateTime now) async {
     final crop = await (db.select(db.crops)..where((c) => c.id.equals(project.cropId))).getSingle();
@@ -145,7 +148,8 @@ WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
         if (!includePhotos) return const [];
         final out = <Uint8List>[];
         for (final p in photos.where((p) => p.kind == kind.name).take(maxPhotosPerKind)) {
-          final bytes = await shrink(photoStore.file(p.localPath));
+          final original = await source.bytes(p);
+          final bytes = original == null ? null : await shrink(original);
           if (bytes != null) out.add(bytes);
         }
         return out;

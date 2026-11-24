@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -17,16 +18,17 @@ Future<void> main() async {
   final db = AppDatabase();
   await CropImporter(db).importBundled();
 
-  final docs = await getApplicationDocumentsDirectory();
-  final temp = await getTemporaryDirectory();
+  // En el navegador no hay carpetas: las fotos se leen desde Drive.
+  final docs = kIsWeb ? '' : (await getApplicationDocumentsDirectory()).path;
+  final temp = kIsWeb ? '' : (await getTemporaryDirectory()).path;
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
-        photoStoreProvider.overrideWithValue(PhotoStore(docs.path)),
-        tempDirProvider.overrideWithValue(temp.path),
+        photoStoreProvider.overrideWithValue(PhotoStore(docs)),
+        tempDirProvider.overrideWithValue(temp),
         preferencesProvider.overrideWithValue(prefs),
       ],
       child: const FramBitacoraApp(),

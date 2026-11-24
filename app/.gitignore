@@ -51,3 +51,7 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
+
+# Motor SQLite de la web: los agrega la compilación (ver .github/workflows/web.yml).
+web/sqlite3.wasm
+web/drift_worker.js

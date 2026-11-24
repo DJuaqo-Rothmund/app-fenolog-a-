@@ -47,9 +47,12 @@ class StageBadge extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.icon, required this.message, this.illustration});
+  const EmptyState({super.key, required this.icon, required this.message, this.illustration, this.action});
   final IconData icon;
   final String message;
+
+  /// Botón opcional debajo del mensaje.
+  final Widget? action;
 
   /// Dibujo que reemplaza al ícono (p. ej. [EmptyIllustration]).
   final Widget? illustration;
@@ -64,6 +67,7 @@ class EmptyState extends StatelessWidget {
           illustration ?? Icon(icon, size: 56, color: Theme.of(context).colorScheme.outline),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
+          if (action != null) ...[const SizedBox(height: 20), action!],
         ],
       ),
     ),

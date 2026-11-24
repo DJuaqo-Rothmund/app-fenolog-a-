@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 
 import '../backup_service.dart';
@@ -96,10 +97,48 @@ ORDER BY pr.name, s.name, o.week_number, ph.file_name''';
     updates: {db.photos},
   );
 
+  /// Carpeta de la semana de una foto (la crea si no existe).
+  Future<String> _weekFolderOf(String photoId) async {
+    final r = await db
+        .customSelect(
+          '''
+SELECT o.week_number, pr.name AS project, s.name AS season
+FROM photos ph
+JOIN observations o ON o.id = ph.observation_id
+JOIN seasons s ON s.id = o.season_id
+JOIN units u ON u.id = o.unit_id
+JOIN projects pr ON pr.id = u.project_id
+WHERE ph.id = ?''',
+          variables: [Variable.withString(photoId)],
+        )
+        .getSingle();
+    final root = await drive.folder(rootFolder);
+    final pr = await drive.folder(r.read<String>('project'), parentId: root);
+    final se = await drive.folder(r.read<String>('season'), parentId: pr);
+    return drive.folder(weekFolder(r.read<int>('week_number')), parentId: se);
+  }
+
+  /// Sube al instante una foto que no tiene archivo local (la web) y la marca
+  /// como subida, para que el teléfono la descargue al sincronizar.
+  Future<void> uploadPhotoBytes(Photo photo, List<int> bytes) async {
+    final folder = await _weekFolderOf(photo.id);
+    await drive.uploadBytes(bytes, name: photo.fileName, parentId: folder, mime: 'image/jpeg');
+    await (db.update(db.photos)..where((x) => x.id.equals(photo.id))).write(
+      PhotosCompanion(uploadStatus: const Value(uploadedToDrive), updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  /// En la web no hay carpeta de fotos ni copias `.zip`: solo se intercambian
+  /// los datos (las fotos se suben al momento de agregarlas y se ven desde Drive).
   Future<DriveSyncResult> sync({
     bool includeBackup = true,
     void Function(String step, int done, int total)? progress,
   }) async {
+    if (kIsWeb) {
+      progress?.call('Intercambiando datos', 0, 0);
+      final d = await data?.sync(rootFolderId: await drive.folder(rootFolder));
+      return DriveSyncResult(uploaded: 0, alreadyThere: 0, missing: 0, received: d?.received ?? 0, sent: d?.sent ?? 0);
+    }
     final rows = await db.customSelect(_pendingSql, variables: [Variable.withString(uploadedToDrive)]).get();
     final root = await drive.folder(rootFolder);
     final folders = <String, String>{};

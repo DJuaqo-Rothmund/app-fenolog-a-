@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -114,13 +115,15 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(context, const DriveScreen()),
               ),
-              ListTile(
-                leading: const IconBadge.app(AppIcons.backup, size: 40),
-                title: const Text('Copia de seguridad'),
-                subtitle: const Text('Guardar o restaurar todos los datos y fotos'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(context, const BackupScreen()),
-              ),
+              // En la web los datos viven en Drive: la copia .zip es solo del teléfono.
+              if (!kIsWeb)
+                ListTile(
+                  leading: const IconBadge.app(AppIcons.backup, size: 40),
+                  title: const Text('Copia de seguridad'),
+                  subtitle: const Text('Guardar o restaurar todos los datos y fotos'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _push(context, const BackupScreen()),
+                ),
             ],
           ),
           const SectionHeader('Apariencia'),

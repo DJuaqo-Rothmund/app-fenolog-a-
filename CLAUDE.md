@@ -97,7 +97,12 @@ decisiones, guía de desarrollo).
   `FramBitácora/datos/<equipo>/`, gana el cambio más reciente, los registros creados en
   dos equipos se unen (id menor). «Sincronizar ahora» sube fotos, intercambia datos,
   baja fotos de otros equipos y (opcional) el respaldo. Detalle en `docs/05-desarrollo.md`.
-  94 pruebas pasan. Siguiente: 5.1 (web).
+  94 pruebas pasan.
+- **Avance 5.1 hecho (24-nov): versión web** en `https://djuaqo-rothmund.github.io/app-fenolog-a-/`
+  (flujo `.github/workflows/web.yml` → rama `gh-pages`). Fotos leídas/subidas directo
+  en Drive, base SQLite WebAssembly en el navegador, sin respaldo `.zip`. ID de cliente
+  web en `lib/features/drive/google_auth.dart`. Detalle en `docs/05-desarrollo.md`.
+  96 pruebas pasan. Siguiente: 5.2 (timeline) y 5.1b (pantallas para PC).
 
 ## Pendientes y preguntas abiertas
 
@@ -108,8 +113,8 @@ decisiones, guía de desarrollo).
 2. **Historial de `main`**: el dueño pidió que no queden rastros de documentos de
    planificación antiguos; reescribir el historial en un solo commit requiere su
    **confirmación explícita** (es irreversible y el sistema de permisos lo bloquea).
-3. Sincronización: **resuelto, vía Google Drive** (ver Decisiones). Requiere además un ID de
-   cliente OAuth **Web** con el origen `https://djuaqo-rothmund.github.io`.
+3. Sincronización: **resuelto, vía Google Drive** (ver Decisiones). ID de cliente OAuth
+   **Web** ya creado por el dueño (24-nov) y puesto en `google_auth.dart`.
 5. **Registro de Google Cloud para Drive**: el dueño debe crear el ID de cliente OAuth
    Android con el paquete y la SHA-1 de `docs/05-desarrollo.md`; sin eso el botón de
    Google muestra un aviso.

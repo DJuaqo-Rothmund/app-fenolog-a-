@@ -25,7 +25,7 @@ void main() {
   late PhenoScale scale;
 
   /// La reducción de fotos de prueba devuelve el archivo tal cual.
-  Future<Uint8List?> shrink(File f) async => f.readAsBytes();
+  Future<Uint8List?> shrink(Uint8List original) async => original;
 
   setUp(() async {
     db = await testDatabase();

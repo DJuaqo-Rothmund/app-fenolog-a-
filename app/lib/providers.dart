@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'data/drive/data_sync.dart';
 import 'data/drive/drive_client.dart';
 import 'data/drive/drive_sync.dart';
 import 'data/database.dart';
+import 'data/photo_source.dart';
 import 'data/photo_store.dart';
 import 'data/project_repository.dart';
 import 'data/report_repository.dart';
@@ -42,7 +44,11 @@ final samplingRepositoryProvider = Provider(
 );
 
 final reportRepositoryProvider = Provider(
-  (ref) => ReportRepository(ref.watch(databaseProvider), ref.watch(photoStoreProvider)),
+  (ref) => ReportRepository(
+    ref.watch(databaseProvider),
+    ref.watch(photoStoreProvider),
+    source: ref.watch(photoSourceProvider),
+  ),
 );
 
 /// Cómo se reducen las fotos para los informes (se reemplaza en las pruebas).
@@ -174,6 +180,16 @@ final driveSyncProvider = Provider(
     backup: ref.watch(backupServiceProvider),
     data: ref.watch(dataSyncProvider),
   ),
+);
+
+/// De dónde se leen las fotos: la carpeta del teléfono o, en la web, Drive.
+final photoSourceProvider = Provider<PhotoSource>(
+  (ref) => kIsWeb ? DrivePhotoSource(ref.watch(driveApiProvider)) : FilePhotoSource(ref.watch(photoStoreProvider)),
+);
+
+/// Bytes de una foto (para mostrarla en la web).
+final photoBytesProvider = FutureProvider.family<Uint8List?, Photo>(
+  (ref, photo) => ref.watch(photoSourceProvider).bytes(photo),
 );
 
 /// Fotos que aún no están en Drive.

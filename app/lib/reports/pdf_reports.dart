@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -25,13 +26,14 @@ const _sandPale = PdfColor.fromInt(0xFFF6F2EA);
 const _border = PdfColor.fromInt(0xFFE0D8C8);
 const _olive = PdfColor.fromInt(0xFF5B6B2E);
 
-/// Arma el informe semanal en otro isolate (no traba la pantalla).
+/// Arma el informe semanal en otro isolate (no traba la pantalla). El
+/// navegador no tiene isolates: ahí se arma en el mismo hilo.
 Future<Uint8List> buildWeeklyPdfInIsolate(WeeklyReport report, ReportAssets assets) =>
-    Isolate.run(() => buildWeeklyPdf(report, assets));
+    kIsWeb ? buildWeeklyPdf(report, assets) : Isolate.run(() => buildWeeklyPdf(report, assets));
 
-/// Arma la matriz de la temporada en otro isolate.
+/// Arma la matriz de la temporada en otro isolate (en la web, en el mismo hilo).
 Future<Uint8List> buildMatrixPdfInIsolate(MatrixReport report, ReportAssets assets) =>
-    Isolate.run(() => buildMatrixPdf(report, assets));
+    kIsWeb ? buildMatrixPdf(report, assets) : Isolate.run(() => buildMatrixPdf(report, assets));
 
 Future<pw.ThemeData> _theme(ReportAssets a) async =>
     pw.ThemeData.withFont(base: pw.Font.ttf(a.regular), bold: pw.Font.ttf(a.bold));

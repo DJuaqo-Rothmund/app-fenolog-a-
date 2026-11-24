@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../domain/completeness.dart';
 import '../domain/photo_naming.dart';
@@ -194,6 +195,25 @@ WHERE o.season_id = ?1 AND u.project_id = ?2 AND o.deleted_at IS NULL''',
     DateTime? takenAt,
   }) async {
     final date = takenAt ?? DateTime.now();
+    final n = await _nextName(observationId, kind, date);
+    final relativePath = await photoStore.save(sourcePath: sourcePath, folder: n.seasonId, fileName: n.fileName);
+    return _insertPhoto(observationId, kind, n.seq, n.fileName, relativePath, date);
+  }
+
+  /// Registra una foto sin archivo local (en la web, donde la foto se sube
+  /// directo a Drive). La ruta guardada es la misma que tendrá en el teléfono
+  /// cuando la descargue al sincronizar.
+  Future<Photo> addPhotoRecord({required String observationId, required PhotoKind kind, DateTime? takenAt}) async {
+    final date = takenAt ?? DateTime.now();
+    final n = await _nextName(observationId, kind, date);
+    return _insertPhoto(observationId, kind, n.seq, n.fileName, '$photosFolder/${n.seasonId}/${n.fileName}', date);
+  }
+
+  Future<({int seq, String fileName, String seasonId})> _nextName(
+    String observationId,
+    PhotoKind kind,
+    DateTime date,
+  ) async {
     final info = await db
         .customSelect(
           '''
@@ -208,39 +228,45 @@ WHERE o.id = ?1
           variables: [Variable.withString(observationId), Variable.withString(kind.name)],
         )
         .getSingle();
-
     final seq = info.read<int>('max_seq') + 1;
-    final fileName = photoFileName(
-      date: date,
-      cropShortCode: info.read<String>('short_code'),
-      unitLabel: info.read<String>('label'),
-      kind: kind,
+    return (
       seq: seq,
+      seasonId: info.read<String>('season_id'),
+      fileName: photoFileName(
+        date: date,
+        cropShortCode: info.read<String>('short_code'),
+        unitLabel: info.read<String>('label'),
+        kind: kind,
+        seq: seq,
+      ),
     );
-    final relativePath = await photoStore.save(
-      sourcePath: sourcePath,
-      folder: info.read<String>('season_id'),
-      fileName: fileName,
-    );
-    return db
-        .into(db.photos)
-        .insertReturning(
-          PhotosCompanion.insert(
-            observationId: observationId,
-            kind: kind.name,
-            seq: seq,
-            fileName: fileName,
-            localPath: relativePath,
-            takenAt: date,
-          ),
-        );
   }
+
+  Future<Photo> _insertPhoto(
+    String observationId,
+    PhotoKind kind,
+    int seq,
+    String fileName,
+    String localPath,
+    DateTime date,
+  ) => db
+      .into(db.photos)
+      .insertReturning(
+        PhotosCompanion.insert(
+          observationId: observationId,
+          kind: kind.name,
+          seq: seq,
+          fileName: fileName,
+          localPath: localPath,
+          takenAt: date,
+        ),
+      );
 
   Future<void> deletePhoto(Photo photo) async {
     final now = DateTime.now();
     await (db.update(
       db.photos,
     )..where((p) => p.id.equals(photo.id))).write(PhotosCompanion(deletedAt: Value(now), updatedAt: Value(now)));
-    await photoStore.delete(photo.localPath);
+    if (!kIsWeb) await photoStore.delete(photo.localPath);
   }
 }

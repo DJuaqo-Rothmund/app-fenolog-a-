@@ -1,6 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../data/drive/drive_client.dart';
+
+/// ID de cliente OAuth «Aplicación web» del proyecto de Google Cloud (es público:
+/// identifica la app, no da acceso). Origen autorizado: `https://djuaqo-rothmund.github.io`.
+const webClientId = '762681085693-litedc00bnbtumhd47penngrvtehcoij.apps.googleusercontent.com';
 
 /// Error comprensible al conectar con Google.
 class GoogleAuthException implements Exception {
@@ -24,7 +29,7 @@ abstract class GoogleAuth {
 ///
 /// Solo pide el permiso `drive.file`. No necesita servidor propio: en Android,
 /// Google reconoce la app por su nombre de paquete y la huella (SHA-1) de su
-/// llave de firma, registradas en Google Cloud.
+/// llave de firma, registradas en Google Cloud; en la web, por [webClientId].
 class GoogleSignInAuth implements GoogleAuth {
   bool _initialized = false;
   String? _token;
@@ -32,7 +37,7 @@ class GoogleSignInAuth implements GoogleAuth {
 
   Future<void> _init() async {
     if (_initialized) return;
-    await GoogleSignIn.instance.initialize();
+    await GoogleSignIn.instance.initialize(clientId: kIsWeb ? webClientId : null);
     _initialized = true;
   }
 
@@ -52,8 +57,11 @@ class GoogleSignInAuth implements GoogleAuth {
       throw GoogleAuthException(switch (e.code) {
         GoogleSignInExceptionCode.canceled => 'Se canceló la conexión con Google.',
         GoogleSignInExceptionCode.clientConfigurationError || GoogleSignInExceptionCode.providerConfigurationError =>
-          'Esta versión de la app todavía no está registrada en Google Cloud para usar Drive '
-              '(falta registrar su huella SHA-1). Detalle: ${e.description ?? e.code.name}',
+          kIsWeb
+              ? 'Esta página no está autorizada en Google Cloud (revisa el origen autorizado del cliente web). '
+                    'Detalle: ${e.description ?? e.code.name}'
+              : 'Esta versión de la app todavía no está registrada en Google Cloud para usar Drive '
+                    '(falta registrar su huella SHA-1). Detalle: ${e.description ?? e.code.name}',
         _ => 'No se pudo conectar con Google: ${e.description ?? e.code.name}',
       });
     }

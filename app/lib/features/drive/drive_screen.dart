@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -69,7 +70,7 @@ class DriveScreen extends ConsumerStatefulWidget {
 
 class _DriveScreenState extends ConsumerState<DriveScreen> {
   bool _connecting = false;
-  bool _includeBackup = true;
+  bool _includeBackup = !kIsWeb;
   ({String step, int done, int total})? _progress;
 
   void _message(String text, {bool error = false}) {
@@ -205,13 +206,14 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
                           : 'Última sincronización: ${_when.format(account.lastSync!)}',
                     ),
                   ),
-                  SwitchListTile(
-                    secondary: const Icon(Icons.backup_outlined),
-                    title: const Text('Incluir copia de seguridad completa'),
-                    subtitle: const Text('Datos y fotos en un .zip, para restaurar en otro teléfono'),
-                    value: _includeBackup,
-                    onChanged: busy ? null : (v) => setState(() => _includeBackup = v),
-                  ),
+                  if (!kIsWeb)
+                    SwitchListTile(
+                      secondary: const Icon(Icons.backup_outlined),
+                      title: const Text('Incluir copia de seguridad completa'),
+                      subtitle: const Text('Datos y fotos en un .zip, para restaurar en otro teléfono'),
+                      value: _includeBackup,
+                      onChanged: busy ? null : (v) => setState(() => _includeBackup = v),
+                    ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                     child: FilledButton.icon(

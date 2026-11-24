@@ -169,7 +169,13 @@ class Photos extends Table with SyncColumns {
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openDefault());
 
-  static QueryExecutor _openDefault() => driftDatabase(name: 'frambitacora');
+  /// En el teléfono, un archivo SQLite; en el navegador, SQLite compilado a
+  /// WebAssembly que guarda en el almacenamiento del navegador (archivos
+  /// `web/sqlite3.wasm` y `web/drift_worker.js`, que agrega la compilación web).
+  static QueryExecutor _openDefault() => driftDatabase(
+    name: 'frambitacora',
+    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker.js')),
+  );
 
   @override
   int get schemaVersion => 3;

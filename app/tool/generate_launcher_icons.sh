@@ -17,3 +17,12 @@ for d in "${!DENS[@]}"; do
   node tool/render_svg.js "$RES/drawable-$d/ic_launcher_monochrome.png" "$adaptive" assets/brand/launcher_monochrome.svg
 done
 echo "Íconos generados en $RES"
+
+# Íconos de la versión web (pestaña del navegador y acceso directo).
+W=web
+node tool/render_svg.js "$W/favicon.png" 32 assets/brand/logo.svg
+node tool/render_svg.js "$W/icons/Icon-192.png" 192 assets/brand/logo.svg
+node tool/render_svg.js "$W/icons/Icon-512.png" 512 assets/brand/logo.svg
+node tool/render_svg.js "$W/icons/Icon-maskable-192.png" 192 assets/brand/launcher_background.svg assets/brand/launcher_foreground.svg
+node tool/render_svg.js "$W/icons/Icon-maskable-512.png" 512 assets/brand/launcher_background.svg assets/brand/launcher_foreground.svg
+echo "Íconos web generados en $W"

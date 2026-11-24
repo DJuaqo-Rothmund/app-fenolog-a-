@@ -4,9 +4,9 @@ import 'dart:isolate';
 
 import 'package:archive/archive_io.dart';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 
+import '../platform/file_database.dart';
 import 'database.dart';
 import 'photo_store.dart';
 
@@ -181,7 +181,7 @@ class BackupService {
     // varias bases abiertas no aplica.
     final previous = driftRuntimeOptions.dontWarnAboutMultipleDatabases;
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-    final backupDb = AppDatabase(NativeDatabase(file));
+    final backupDb = AppDatabase(openFileDatabase(file));
     try {
       final check = await backupDb.customSelect('PRAGMA quick_check').getSingle();
       if (check.data.values.first != 'ok') throw BackupException('La base de datos de la copia está dañada.');

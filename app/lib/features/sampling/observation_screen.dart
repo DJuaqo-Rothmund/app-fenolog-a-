@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +13,7 @@ import '../../providers.dart';
 import '../app_icons.dart';
 import '../common.dart';
 import '../help/photo_guide_screen.dart';
+import '../photo_image.dart';
 import '../scale/scale_screen.dart';
 import 'device_services.dart';
 
@@ -104,12 +106,29 @@ class _ObservationScreenState extends ConsumerState<ObservationScreen> {
     final picker = ref.read(photoPickerProvider);
     setState(() => _busy = true);
     try {
-      final paths = camera ? await picker.fromCamera() : await picker.fromGallery();
-      if (paths.isEmpty) return;
+      if (kIsWeb && ref.read(driveAccountProvider) == null) {
+        _snack('Para subir fotos desde la web, conecta Google Drive (Configuración → Google Drive).');
+        return;
+      }
+      final files = camera ? await picker.fromCamera() : await picker.fromGallery();
+      if (files.isEmpty) return;
       final id = await _observationId();
       final repo = ref.read(samplingRepositoryProvider);
-      for (final path in paths) {
-        await repo.addPhoto(observationId: id, kind: kind, sourcePath: path);
+      for (final f in files) {
+        if (!kIsWeb) {
+          await repo.addPhoto(observationId: id, kind: kind, sourcePath: f.path);
+          continue;
+        }
+        // En la web la foto va directo a Drive; el teléfono la baja al sincronizar.
+        final bytes = await f.readAsBytes();
+        final photo = await repo.addPhotoRecord(observationId: id, kind: kind);
+        try {
+          await ref.read(driveSyncProvider).uploadPhotoBytes(photo, bytes);
+          ref.read(photoSourceProvider).remember(photo, bytes);
+        } catch (_) {
+          await repo.deletePhoto(photo);
+          rethrow;
+        }
       }
     } catch (e) {
       if (mounted) _snack('No se pudo agregar la foto: $e');
@@ -341,7 +360,6 @@ class _PhotoSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final photoStore = ref.watch(photoStoreProvider);
     final scheme = Theme.of(context).colorScheme;
     return _Section(
       action: IconButton(
@@ -388,15 +406,7 @@ class _PhotoSection extends ConsumerWidget {
                                 onLongPress: () => onDelete(p),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    photoStore.file(p.localPath),
-                                    width: 72,
-                                    height: 72,
-                                    fit: BoxFit.cover,
-                                    cacheWidth: 216,
-                                    errorBuilder: (_, _, _) =>
-                                        const SizedBox(width: 72, height: 72, child: Icon(Icons.broken_image)),
-                                  ),
+                                  child: PhotoImage(p, width: 72, height: 72, fit: BoxFit.cover, cacheWidth: 216),
                                 ),
                               ),
                             ),
@@ -438,9 +448,6 @@ class _PhotoViewer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
     backgroundColor: Colors.black,
     appBar: AppBar(title: Text(photo.fileName, style: const TextStyle(fontSize: 14))),
-    body: InteractiveViewer(
-      maxScale: 6,
-      child: Center(child: Image.file(ref.watch(photoStoreProvider).file(photo.localPath))),
-    ),
+    body: InteractiveViewer(maxScale: 6, child: Center(child: PhotoImage(photo))),
   );
 }

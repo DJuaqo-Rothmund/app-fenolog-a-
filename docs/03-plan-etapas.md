@@ -74,5 +74,6 @@ completar la semana (hoy es un mensaje con ícono).
 
 | Avance | Contenido | Estado |
 |---|---|---|
-| 5.1 | App en el navegador (GitHub Pages): inicio con Google, subir fotos, elegir BBCH, corregir, informes y matriz | Pendiente |
+| 5.1 | App en el navegador (GitHub Pages): inicio con Google, subir fotos, elegir BBCH, corregir, informes y matriz | ✅ Hecho (falta probar con la cuenta real) |
+| 5.1b | Pantallas pensadas para PC (menú lateral, matriz ancha, arrastrar fotos) | Pendiente |
 | 5.2 | Timeline interactivo por variedad o tratamiento (web y teléfono) | Pendiente |

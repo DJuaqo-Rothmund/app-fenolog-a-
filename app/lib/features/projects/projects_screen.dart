@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import '../../domain/season_weeks.dart';
 import '../../providers.dart';
 import '../app_icons.dart';
 import '../common.dart';
+import '../drive/drive_screen.dart';
 import '../settings/settings_screen.dart';
 import 'project_form_screen.dart';
 import 'project_screen.dart';
@@ -107,13 +109,28 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               ),
             ),
             if (list.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 hasScrollBody: false,
-                child: EmptyState(
-                  icon: Icons.eco_outlined,
-                  illustration: EmptyIllustration(),
-                  message: 'Aún no hay proyectos.\nCrea un ensayo o un predio con el botón «Proyecto».',
-                ),
+                child: kIsWeb
+                    // En la web, los datos llegan desde el teléfono a través de Drive.
+                    ? EmptyState(
+                        icon: Icons.cloud_sync_outlined,
+                        illustration: const EmptyIllustration(),
+                        message:
+                            'Conecta tu Google Drive para traer los proyectos que registraste en el teléfono.\n'
+                            '(En el teléfono: Configuración → Google Drive → Sincronizar ahora.)',
+                        action: FilledButton.icon(
+                          onPressed: () =>
+                              Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const DriveScreen())),
+                          icon: const Icon(Icons.cloud_outlined),
+                          label: const Text('Conectar Google Drive'),
+                        ),
+                      )
+                    : const EmptyState(
+                        icon: Icons.eco_outlined,
+                        illustration: EmptyIllustration(),
+                        message: 'Aún no hay proyectos.\nCrea un ensayo o un predio con el botón «Proyecto».',
+                      ),
               )
             else if (_grid)
               SliverPadding(

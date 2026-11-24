@@ -7,15 +7,14 @@ import 'package:image_picker/image_picker.dart';
 class PhotoPicker {
   final _picker = ImagePicker();
 
-  Future<List<String>> fromCamera() async {
+  /// En el teléfono se usa la ruta del archivo; en la web, su contenido
+  /// (`XFile.readAsBytes`), porque el navegador no da rutas.
+  Future<List<XFile>> fromCamera() async {
     final f = await _picker.pickImage(source: ImageSource.camera, maxWidth: 2048, maxHeight: 2048, imageQuality: 85);
-    return f == null ? const [] : [f.path];
+    return f == null ? const [] : [f];
   }
 
-  Future<List<String>> fromGallery() async {
-    final files = await _picker.pickMultiImage(maxWidth: 2048, maxHeight: 2048, imageQuality: 85);
-    return [for (final f in files) f.path];
-  }
+  Future<List<XFile>> fromGallery() => _picker.pickMultiImage(maxWidth: 2048, maxHeight: 2048, imageQuality: 85);
 }
 
 class LocationFix {
