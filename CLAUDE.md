@@ -73,7 +73,10 @@ decisiones, guía de desarrollo).
   semana, fotos general + detalle por unidad) y matriz de la temporada (Carta horizontal,
   unidades × semanas con colores). Vista previa con zoom, compartir e imprimir (paquetes
   `pdf` y `printing`). Pensado para la jefa del dueño: sencillo, solo temporada e
-  información general del ensayo. Pie de página: solo «Página N de M».
+  información general del ensayo. Pie de página: solo «Página N de M». Estilo sobrio
+  (pedido del dueño, 24-nov): título grande con raya negra, tablas con encabezado arena,
+  una tarjeta por unidad (fotos, píldora «BBCH nn · estadio», código de variedad en
+  oliva) y columna «Estadio principal» (macroestadio).
 - **Avance de la temporada** (botón en cada proyecto y en Informes → «Revisar la
   temporada»): grilla unidades × semanas en la app, alertas (retrocede, sin foto, sin
   estado) y toque en una celda para corregir ese registro antes del informe. «Quitar

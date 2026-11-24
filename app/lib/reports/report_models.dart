@@ -4,9 +4,18 @@ import 'dart:typed_data';
 /// datos ni Flutter) para poder armar el PDF en otro isolate sin trabar la pantalla.
 
 class ReportStage {
-  const ReportStage({required this.code, required this.name, required this.color, this.sortOrder = 0});
+  const ReportStage({
+    required this.code,
+    required this.name,
+    required this.color,
+    this.sortOrder = 0,
+    this.macroName = '',
+  });
   final String code;
   final String name;
+
+  /// Macroestadio al que pertenece (p. ej. «Floración»).
+  final String macroName;
 
   /// Color ARGB del estadio, como en la escala.
   final int color;
@@ -39,6 +48,7 @@ class WeeklyUnitRow {
   const WeeklyUnitRow({
     required this.label,
     this.subtitle = '',
+    this.code = '',
     this.stage,
     this.previous,
     this.photoCount = 0,
@@ -50,6 +60,9 @@ class WeeklyUnitRow {
 
   /// Descripción del tratamiento (dosis) o variedad, si corresponde.
   final String subtitle;
+
+  /// Código corto de la variedad (p. ej. «C11»), si tiene.
+  final String code;
   final ReportStage? stage;
 
   /// Estado de la semana anterior, para mostrar el avance.

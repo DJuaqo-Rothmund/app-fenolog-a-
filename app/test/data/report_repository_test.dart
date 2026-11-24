@@ -64,7 +64,8 @@ void main() {
 
   test('informe semanal: estado actual y anterior, notas y una foto de cada tipo', () async {
     final p = await project(ProjectKind.varietyTrial);
-    final heritage = await projects.createUnit(projectId: p.project, label: 'Heritage');
+    final variety = await catalog.createVariety(cropId: crop.id, name: 'Heritage', code: 'HER');
+    final heritage = await projects.createUnit(projectId: p.project, label: 'Heritage', varietyId: variety);
     await projects.createUnit(projectId: p.project, label: 'Tulameen');
     final flower = stages.firstWhere((s) => s.code.startsWith('6'));
     final fruit = stages.firstWhere((s) => s.code.startsWith('7'));
@@ -87,6 +88,8 @@ void main() {
     final h = r.rows.first;
     expect(h.stage!.code, fruit.code);
     expect(h.previous!.code, flower.code);
+    expect(h.stage!.macroName, 'Desarrollo del fruto', reason: 'macroestadio para «Estadio principal»');
+    expect(h.code, 'HER');
     expect(h.notes, 'Cuaja pareja');
     expect(h.photoCount, 3);
     expect(h.general.map((b) => b.first), [1], reason: 'una foto general por defecto');

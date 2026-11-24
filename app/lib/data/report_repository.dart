@@ -81,9 +81,10 @@ class ReportRepository {
     final rows = await db
         .customSelect(
           '''
-SELECT o.id, o.unit_id, o.notes, s.code, s.name, s.color, s.sort_order
+SELECT o.id, o.unit_id, o.notes, s.code, s.name, s.color, s.sort_order, m.name AS macro
 FROM observations o
 LEFT JOIN pheno_stages s ON s.id = o.stage_id
+LEFT JOIN pheno_macros m ON m.scale_id = s.scale_id AND m.code = s.macro_code AND m.deleted_at IS NULL
 WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
           variables: [Variable.withString(seasonId), Variable.withInt(week)],
         )
@@ -98,6 +99,7 @@ WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
                   name: r.read<String>('name'),
                   color: r.read<int>('color'),
                   sortOrder: r.read<int>('sort_order'),
+                  macroName: r.readNullable<String>('macro') ?? '',
                 ),
           observationId: r.read<String>('id'),
           notes: r.read<String>('notes'),
@@ -126,6 +128,7 @@ WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
     final season = await (db.select(db.seasons)..where((s) => s.id.equals(seasonId))).getSingle();
     final units = await _units(projectId);
     final subtitle = await _subtitles(project);
+    final codes = {for (final v in await db.select(db.varieties).get()) v.id: v.code.trim()};
     final current = await _week(seasonId, week);
     final previous = week > 1 ? await _week(seasonId, week - 1) : const <String, Never>{};
 
@@ -152,6 +155,7 @@ WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
         WeeklyUnitRow(
           label: u.label,
           subtitle: subtitle(u),
+          code: codes[u.varietyId] ?? '',
           stage: obs?.stage,
           previous: previous[u.id]?.stage,
           photoCount: photos.length,
@@ -189,8 +193,9 @@ WHERE o.season_id = ? AND o.week_number = ? AND o.deleted_at IS NULL''',
     final obs = await db
         .customSelect(
           '''
-SELECT o.unit_id, o.week_number, s.code, s.name, s.color, s.sort_order
+SELECT o.unit_id, o.week_number, s.code, s.name, s.color, s.sort_order, m.name AS macro
 FROM observations o JOIN pheno_stages s ON s.id = o.stage_id
+LEFT JOIN pheno_macros m ON m.scale_id = s.scale_id AND m.code = s.macro_code AND m.deleted_at IS NULL
 WHERE o.season_id = ? AND o.deleted_at IS NULL''',
           variables: [Variable.withString(seasonId)],
         )
@@ -205,6 +210,7 @@ WHERE o.season_id = ? AND o.deleted_at IS NULL''',
         name: r.read<String>('name'),
         color: r.read<int>('color'),
         sortOrder: r.read<int>('sort_order'),
+        macroName: r.readNullable<String>('macro') ?? '',
       );
     }
 
